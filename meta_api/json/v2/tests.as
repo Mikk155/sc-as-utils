@@ -65,6 +65,21 @@ namespace meta_api
                     Expect( "[Schema] unevaluated properties discard", true,
                         Deserialize( "{\"unevaluated\":1,\"evaluated\":1}", obj )
                         && !schema::Validate( obj, "{\"type\":\"object\",\"unevaluatedProperties\":false}" )
+                        && obj.Length() == 0
+                    );
+
+                    json@ defaults;
+                    Expect( "[Schema] external defaults", true,
+                        Deserialize( "{\"inherited\":7}", defaults )
+                        && Deserialize( "{}", obj )
+                        && schema::Validate( obj, "{\"type\":\"object\",\"properties\":{\"inherited\":{\"type\":\"integer\"}}}", false, defaults )
+                        && int( obj[ "inherited" ] ) == 7
+                    );
+
+                    Expect( "[Schema] additional property array schema", true,
+                        Deserialize( "{\"known\":1,\"extra\":[2]}", obj )
+                        && schema::Validate( obj, "{\"type\":\"object\",\"properties\":{\"known\":{\"type\":\"integer\"}},\"additionalProperties\":{\"type\":\"array\",\"items\":{\"type\":\"integer\"}},\"unevaluatedProperties\":false}" )
+                        && obj[ "extra" ].is_array()
                     );
 
                     Expect( "[Schema] type expect", true,
@@ -158,6 +173,28 @@ namespace meta_api
                     Expect( "[Error] File not found", true,
                         !Deserialize( "nonexistent_file_path_test.json", obj, testErr )
                         && testErr == meta_api::json::Error::FILE_NOT_FOUND
+                    );
+
+                    Expect( "[JSON] zero-decimal float serialization", true,
+                        Deserialize( "{\"value\":1.0}", obj )
+                        && obj[ "value" ].Type == meta_api::json::Type::Float
+                        && obj.ToString().Find( "1.0" ) != String::INVALID_INDEX
+                    );
+
+                    Expect( "[JSON] ValueOrDefault existing value", true,
+                        Deserialize( "{\"value\":1}", obj )
+                        && int( obj.ValueOrDefault( "value" ) ) == 1
+                        && obj.Length() == 1
+                    );
+
+                    Expect( "[JSON] Remove missing key and array index", true,
+                        Deserialize( "{\"value\":1}", obj )
+                        && obj.Remove( "missing" ) is null
+                        && obj.Length() == 1
+                        && Deserialize( "[1,2]", obj )
+                        && int( obj.Remove( uint(0) ) ) == 1
+                        && obj.Length() == 1
+                        && int( obj[ uint(0) ] ) == 2
                     );
                 }
             }
