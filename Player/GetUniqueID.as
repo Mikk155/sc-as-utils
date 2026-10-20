@@ -1,7 +1,9 @@
 namespace Player
 {
     /**
-    *   @brief Get a player unique steam ID. whatever this is a bot or sv_lan is 1 we add a unique identifier
+    *   @brief Gets a stable player identifier for Steam, bot, and LAN players.
+    *   @param player Player whose identifier is requested. If null, an empty string is returned.
+    *   Bots and LAN players receive a prefix plus their current player name.
     **/
     string GetUniqueID( CBasePlayer@ player )
     {

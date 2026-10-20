@@ -8,6 +8,10 @@ namespace meta_api
             {
                 /// If the json is type of Array or Object converts the values to the array type.
                 /// If store is true allocate it in the json.Value and set the list handle to that array and updates the type to Handle.
+                /// @param json The JSON object or array, or a handle to an array of the requested element type.
+                /// @param list Receives the converted array.
+                /// @param strict Require element values to match the target type when true.
+                /// @param store Store the resulting array handle in the JSON value when true.
                 bool ToArray( meta_api::json::v2::json@ json, array<float>@&out list, bool strict = false, bool store = false )
                 {
                     if( json !is null )
@@ -44,6 +48,10 @@ namespace meta_api
                 }
                 /// If the json is type of Array or Object converts the values to the array type.
                 /// If store is true allocate it in the json.Value and set the list handle to that array and updates the type to Handle.
+                /// @param json The JSON object or array, or a handle to an array of the requested element type.
+                /// @param list Receives the converted array.
+                /// @param strict Require element values to match the target type when true.
+                /// @param store Store the resulting array handle in the JSON value when true.
                 bool ToArray( meta_api::json::v2::json@ json, array<int>@&out list, bool strict = false, bool store = false )
                 {
                     if( json !is null )
@@ -80,6 +88,10 @@ namespace meta_api
                 }
                 /// If the json is type of Array or Object converts the values to the array type.
                 /// If store is true allocate it in the json.Value and set the list handle to that array and updates the type to Handle.
+                /// @param json The JSON object or array, or a handle to an array of the requested element type.
+                /// @param list Receives the converted array.
+                /// @param strict Require element values to match the target type when true.
+                /// @param store Store the resulting array handle in the JSON value when true.
                 bool ToArray( meta_api::json::v2::json@ json, array<bool>@&out list, bool strict = false, bool store = false )
                 {
                     if( json !is null )
@@ -116,6 +128,10 @@ namespace meta_api
                 }
                 /// If the json is type of Array or Object converts the values to the array type.
                 /// If store is true allocate it in the json.Value and set the list handle to that array and updates the type to Handle.
+                /// @param json The JSON object or array, or a handle to an array of the requested element type.
+                /// @param list Receives the converted array.
+                /// @param strict Keep only string elements when true; convert values to text when false.
+                /// @param store Store the resulting array handle in the JSON value when true.
                 bool ToArray( meta_api::json::v2::json@ json, array<string>@&out list, bool strict = false, bool store = false )
                 {
                     if( json !is null )

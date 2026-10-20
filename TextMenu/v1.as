@@ -43,6 +43,12 @@ namespace TextMenu
                 return this.m_Content;
             }
 
+            /**
+             * Appends text after replacing supported color tags with menu color codes.
+             *
+             * @param text Text to append. Tags such as "<red>" and "<r>" are converted
+             *             in place to the corresponding CTextMenu color code.
+             */
             MenuText@ Write( string&in text )
             {
                 const array<string>@ keys = MenuColors.getKeys();
@@ -71,6 +77,12 @@ namespace TextMenu
                 return this;
             }
 
+            /**
+             * Appends a raw CTextMenu color control code.
+             *
+             * @param color CTextMenu color control code to append, introduced by a
+             *              backslash and followed by the color's letter.
+             */
             MenuText@ Color( const string&in color )
             {
                 this.m_Content.opAddAssign( color );
@@ -129,13 +141,23 @@ namespace TextMenu
             }
         }
 
-        // Callback for when a option is selected from a menu.
+        /**
+         * Callback invoked when a player selects a menu option.
+         *
+         * @param player Player who selected the option.
+         * @param option Option selected by the player.
+         */
         funcdef void MenuOptionSelect( CBasePlayer@ player, MenuOption@ option );
 
         class MenuOption : ASMenuTextHolder
         {
             dictionary@ m_Data;
 
+            /**
+             * Associates custom data with this option.
+             *
+             * @param data Dictionary to associate with the option; it may be null.
+             */
             MenuOption@ SetData( dictionary@ data )
             {
                 @this.m_Data = data;
@@ -174,6 +196,11 @@ namespace TextMenu
 
             MenuOptionSelect@ m_Callback = null;
 
+            /**
+             * Sets the function invoked when this option is selected.
+             *
+             * @param callback Selection callback, or null to clear the callback.
+             */
             MenuOption@ SetCallback( MenuOptionSelect@ callback )
             {
                 @this.m_Callback = callback;
@@ -185,6 +212,11 @@ namespace TextMenu
                 return this.m_Callback;
             }
 
+            /**
+             * Creates an option owned by the given menu.
+             *
+             * @param owner Menu that owns this option and determines its index.
+             */
             MenuOption( Menu@ owner )
             {
                 @this.m_Owner = owner;
@@ -259,6 +291,14 @@ namespace TextMenu
                 return index;
             }
 
+            /**
+             * Dispatches the engine menu selection to the callback on its associated option.
+             *
+             * @param menu Engine menu that reported the selection.
+             * @param player Player who selected an item.
+             * @param slot Selected menu slot as reported by CTextMenu.
+             * @param item Engine menu item containing the option's user data; null is ignored.
+             */
             void InternalCallback( CTextMenu@ menu, CBasePlayer@ player, int slot, const CTextMenuItem@ item )
             {
                 if( item !is null )
@@ -280,7 +320,13 @@ namespace TextMenu
                 }
             }
 
-            // Open menu for a target player
+            /**
+             * Opens this menu for one player on the requested page.
+             *
+             * @param player Player who will see the menu. If null, no menu is opened.
+             * @param displayTime Number of seconds the menu remains open.
+             * @param page Zero-based page index to display.
+             */
             void Open( CBasePlayer@ player, uint displayTime = 10, uint page = 0 )
             {
                 if( player is null )
@@ -317,7 +363,12 @@ namespace TextMenu
                 @this.m_Menus[ index ] = menu;
             }
 
-            // Open menu for all players
+            /**
+             * Opens this menu for every connected player on the requested page.
+             *
+             * @param displayTime Number of seconds the menu remains open.
+             * @param page Zero-based page index to display.
+             */
             void Open( uint displayTime = 10, uint page = 0 )
             {
                 for( int i = 1; i <= g_Engine.maxClients; i++ )

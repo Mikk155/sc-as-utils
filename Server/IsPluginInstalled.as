@@ -1,5 +1,11 @@
 namespace Server
 {
+    /**
+     * Checks whether a server plugin with the given name is loaded.
+     *
+     * @param plugin_name Plugin name to search for.
+     * @param case_sensitive Whether the name must match letter case exactly. Defaults to false.
+     */
     bool IsPluginInstalled( const string&in plugin_name, bool case_sensitive = false )
     {
         array<string>@ pluginList = g_PluginManager.GetPluginList();

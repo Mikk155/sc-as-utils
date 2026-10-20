@@ -25,9 +25,11 @@
 namespace Server
 {
     /**
-    *   @brief Return whatever the current map is in the given list
-    *   allowWildcarding: Allow "*" as wildcarding for suffix and prefix
-    *   freeArray: when true list is resized to 0.
+    *   @brief Checks the current map name against a list of names and optional wildcards.
+    *   @param list Map names to check. Entries may contain a leading and/or trailing
+    *               '*' when wildcard matching is enabled. The array is cleared if freeArray is true.
+    *   @param allowWildcarding Whether to allow '*' as a prefix or suffix wildcard.
+    *   @param freeArray Whether to resize list to zero after checking it.
     **/
     bool IsMapListed( array<string>@ list, bool allowWildcarding = true, bool freeArray = false )
     {

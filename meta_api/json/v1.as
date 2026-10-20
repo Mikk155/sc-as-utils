@@ -16,6 +16,11 @@ namespace meta_api
                     return meta_api::json::Version::V1;
                 }
 
+                /**
+                *   @brief Parse the current JSON object or array into a dictionary.
+                *   @param obj Receives the parsed key-value pairs.
+                *   @param objectType The JSON container type being parsed.
+                **/
                 bool Parse( dictionary&out obj, const meta_api::json::Type&in objectType )
                 {
                     obj.deleteAll();
@@ -70,6 +75,10 @@ namespace meta_api
                 }
             }
 
+            /**
+            *   @brief Determine whether a dictionary represents an array or an object.
+            *   @param obj The dictionary whose keys are checked for sequential numeric indexes.
+            **/
             meta_api::json::Type __GetDictionaryType__( dictionary&in obj )
             {
                 meta_api::json::Type type = meta_api::json::Type::Array;
@@ -88,6 +97,11 @@ namespace meta_api
                 return type;
             }
 
+            /**
+            *   @brief Serialize a dictionary using an existing serializer.
+            *   @param obj The dictionary to serialize.
+            *   @param Serializer The serializer that receives the dictionary's entries.
+            **/
             string Serialize( dictionary&in obj, meta_api::json::parser::Serializer@ Serializer )
             {
                 string strValue;
@@ -135,6 +149,10 @@ namespace meta_api
             *   @brief Serializes obj
             *   filename: if provided is a path to write to a file at scripts/(module type)/store/(filename).json
             *   If the object failed to parse for any reason it will write "{}" to the file only if the file doesn't exists
+            *   @param obj The dictionary to serialize.
+            *   @param filename Optional output filename; an empty string returns the serialized text instead.
+            *   @param indents The indentation mode used to format the output.
+            *   @param style The placement style for nested object and array delimiters.
             **/
             string Serialize(
                 dictionary&in obj,
@@ -160,6 +178,8 @@ namespace meta_api
             *   @brief Deserializes str into obj,
             *   If str ends with ".json" we will open a file. No need to specify scripts/plugins/ or scripts/maps/ it will be automatically detected.
             *   If str is a file and is pointing to store/ and the file couldn't be opened it will be writed and return {}
+            *   @param str JSON text to parse, or a recognized JSON filename to load.
+            *   @param obj Receives the parsed JSON contents as a dictionary.
             **/
             bool Deserialize( const string&in str, dictionary&out obj )
             {
@@ -176,6 +196,12 @@ namespace meta_api
                 return Deserializer.Parse( obj, Deserializer.Initialize() );
             }
 
+            /**
+            *   @brief Deserialize JSON text or a file into a dictionary and report the result code.
+            *   @param str JSON text to parse, or a recognized JSON filename to load.
+            *   @param obj Receives the parsed JSON contents as a dictionary.
+            *   @param err Receives the error code describing the deserialization result.
+            **/
             bool Deserialize( const string&in str, dictionary&out obj, meta_api::json::Error&out err )
             {
                 meta_api::json::v1::__Deserializer__ Deserializer();

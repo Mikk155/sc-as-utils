@@ -13,7 +13,11 @@ namespace aslp
 {
     namespace json
     {
-        // Deserialize a string json-format into a dictionary. if str ends with .json it will be a file to open",
+        /**
+        *   @brief Deserialize JSON text or a JSON file into a dictionary.
+        *   @param str JSON text to parse, or a filename ending in .json.
+        *   @param obj Receives the parsed key-value pairs.
+        **/
         bool Deserialize( const string &in str, dictionary &out obj );
     }
 
@@ -108,16 +112,28 @@ namespace aslp
         Vector vuser4;
 
         uint get_numphysent();
+        /// @param size The new number of physical entities available through physents.
         void set_numphysent( uint size );
+        /// @param index The zero-based physical-entity index to retrieve.
         PhysicalEntity@ get_physents( uint index );
+        /// @param entity The physical entity to store at the requested index.
+        /// @param index The zero-based physical-entity index to update.
         void set_physents( PhysicalEntity@ entity, uint index );
         uint get_nummoveent();
+        /// @param size The new number of movement entities available through moveents.
         void set_nummoveent( uint size );
+        /// @param index The zero-based movement-entity index to retrieve.
         PhysicalEntity@ get_moveents( uint index );
+        /// @param entity The physical entity to store at the requested index.
+        /// @param index The zero-based movement-entity index to update.
         void set_moveents( PhysicalEntity@ entity, uint index );
         uint get_numvisent();
+        /// @param size The new number of visible entities available through visents.
         void set_numvisent( uint size );
+        /// @param index The zero-based visible-entity index to retrieve.
         PhysicalEntity@ get_visents( uint index );
+        /// @param entity The physical entity to store at the requested index.
+        /// @param index The zero-based visible-entity index to update.
         void set_visents( PhysicalEntity@ entity, uint index );
     }
 
@@ -212,21 +228,57 @@ namespace aslp
     }
 }
 
-// Pre call of ClientCommand. See CEngineFuncs Cmd_Args, Cmd_Argv and Cmd_Argc,
+/**
+*   @brief Hook invoked before processing a client command.
+*   @param player The player who issued the command.
+*   @param meta_result Receives the hook's handling result.
+**/
 funcdef HookReturnCode ClientCommandHook( CBasePlayer@ player, aslp::MetaResult &out meta_result );
-// Pre call before a player info changed,
+/**
+*   @brief Hook invoked before a player's user information changes.
+*   @param player The player whose information is changing.
+*   @param buffer The user-information text being applied.
+*   @param meta_result Receives the hook's handling result.
+**/
 funcdef HookReturnCode UserInfoChangedHook( CBasePlayer@ player, string buffer, aslp::MetaResult &out meta_result );
-// Called before the Server-side logic of the player movement.,
+/**
+*   @brief Hook invoked before server-side player movement is processed.
+*   @param movement Receives the movement state for the player.
+*   @param meta_result Receives the hook's handling result.
+**/
 funcdef HookReturnCode PlayerPreMovementHook( aslp::PlayerMovement@ &out movement, aslp::MetaResult &out meta_result );
-// Called after the Server-side logic of the player movement.,
+/**
+*   @brief Hook invoked after server-side player movement is processed.
+*   @param movement Receives the updated movement state for the player.
+*   @param meta_result Receives the hook's handling result.
+**/
 funcdef HookReturnCode PlayerPostMovementHook( aslp::PlayerMovement@ &out movement, aslp::MetaResult &out meta_result );
-// Called when the server is about to network a entity to a client,
+/**
+*   @brief Hook invoked before an entity is added to a client's network packet.
+*   @param packet The client packet and entity state being considered for transmission.
+*   @param meta_result Receives the hook's handling result.
+**/
 funcdef HookReturnCode PreAddToFullPackHook( aslp::ClientPacket@ packet, aslp::MetaResult &out meta_result );
-// Called when the server is about to network a entity to a client,
+/**
+*   @brief Hook invoked after an entity has been added to a client's network packet.
+*   @param packet The client packet and entity state being processed.
+*   @param meta_result Receives the hook's handling result.
+**/
 funcdef HookReturnCode PostAddToFullPackHook( aslp::ClientPacket@ packet, aslp::MetaResult &out meta_result );
-// Called whatever a entity is touched by another. Set Collide to false to prevent the interaction.,
+/**
+*   @brief Hook invoked when one entity touches another.
+*   @param touched The entity being touched.
+*   @param other The entity that touched it.
+*   @param meta_result Receives the hook's handling result.
+*   @param Collide Receives the collision decision; set it to false to prevent interaction.
+**/
 funcdef HookReturnCode ShouldCollideHook( CBaseEntity@ touched, CBaseEntity@ other, aslp::MetaResult &out meta_result, bool &out Collide );
-// Pre call before a player is healed,
+/**
+*   @brief Hook invoked before a player receives healing.
+*   @param player The player being healed.
+*   @param health Receives or updates the proposed health amount.
+*   @param bitsDamage Receives or updates the damage-type flags associated with the operation.
+**/
 funcdef HookReturnCode PlayerTakeHealthHook( CBasePlayer@ player, float &out health, int &out bitsDamage );
 
 namespace Hooks

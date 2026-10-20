@@ -125,6 +125,7 @@ namespace meta_api
                     return val;
                 }
 
+                /// @param type The JSON type to assign to this value.
                 void SetType( const meta_api::json::Type&in type )
                 {
                     switch( type )
@@ -154,6 +155,8 @@ namespace meta_api
                 }
 
                 /// Set a value of any type. "value" could be set by using Value.opAssign(T) from this object
+                /// @param value The underlying dictionary value to store.
+                /// @param type The JSON type to associate with the stored value.
                 void SetValue( const dictionaryValue&in value, const meta_api::json::Type&in type )
                 {
                     this.SetType(type);
@@ -163,6 +166,7 @@ namespace meta_api
                 /// ======================================
                 /// opAssign
                 /// ======================================
+                /// @param value The JSON value to copy into this instance.
                 meta_api::json::v2::json@ opAssign( meta_api::json::v2::json@ value )
                 {
                     this.SetType( value.Type );
@@ -185,18 +189,23 @@ namespace meta_api
                     return copy;
                 }
 
+                /// @param value The floating-point value to assign.
                 meta_api::json::v2::json@ opAssign( const float value ) {
                     this.SetValue( this.Value.opAssign(value), meta_api::json::Type::Float ); return this;
                 }
+                /// @param value The integer value to assign.
                 meta_api::json::v2::json@ opAssign( const int value ) {
                     this.SetValue( this.Value.opAssign(value), meta_api::json::Type::Integer ); return this;
                 }
+                /// @param value The Boolean value to assign.
                 meta_api::json::v2::json@ opAssign( const bool value ) {
                     this.SetValue( this.Value.opAssign(value), meta_api::json::Type::Boolean ); return this;
                 }
+                /// @param value The string value to assign.
                 meta_api::json::v2::json@ opAssign( const string&in value ) {
                     this.SetValue( this.Value.opAssign(value), meta_api::json::Type::String ); return this;
                 }
+                /// @param value The null value to assign.
                 meta_api::json::v2::json@ opAssign( const meta_api::json::v2::Null&in value ) {
                     this.SetValue( this.Value.opAssign(value), meta_api::json::Type::Null ); return this;
                 }
@@ -220,6 +229,7 @@ namespace meta_api
                 /// ======================================
                 /// Constructors
                 /// ======================================
+                /// @param other The JSON value to copy into the new instance.
                 json( meta_api::json::v2::json@ other )
                 {
                     this.opAssign( other );
@@ -234,12 +244,18 @@ namespace meta_api
                 *   @brief Deserializes str
                 *   If str ends with ".json" we will open a file. No need to specify scripts/plugins/ or scripts/maps/ it will be automatically detected.
                 *   If str is a file and is pointing to store/ and the file couldn't be opened it will be writed and return a valid handle
+                *   @param str JSON text to parse, or a recognized JSON filename to load.
                 **/
                 bool Load( const string&in str )
                 {
                     return Deserialize( str, this );
                 }
 
+                /**
+                *   @brief Deserialize JSON text or a file into this value and report the result code.
+                *   @param str JSON text to parse, or a recognized JSON filename to load.
+                *   @param err Receives the error code describing the load result.
+                **/
                 bool Load( const string&in str, meta_api::json::Error&out err )
                 {
                     return Deserialize( str, this, err );
@@ -257,6 +273,7 @@ namespace meta_api
                 }
 
                 /// Return whatever this objects contains the given key
+                /// @param keyName The key to look up.
                 bool Contains( const string&in keyName ) const
                 {
                     return this.m_KeyValues.exists( keyName );
@@ -313,6 +330,8 @@ namespace meta_api
                 }
 
                 /// Set key value pair, return the old value if it exists otherwise null
+                /// @param keyName The key to set.
+                /// @param value The JSON value to store at that key.
                 meta_api::json::v2::json@ Set( const string&in keyName, meta_api::json::v2::json@ value )
                 {
                     meta_api::json::v2::json@ old = cast<meta_api::json::v2::json@>( this.m_KeyValues[ keyName ] );
@@ -342,25 +361,35 @@ namespace meta_api
                 }
 
                 /// Set key value pair, return the old value if it exists otherwise null
+                /// @param keyName The key to set.
+                /// @param value The Boolean value to store at that key.
                 meta_api::json::v2::json@ Set( const string&in keyName, const bool value )
                 {
                     return @this.Set( keyName, meta_api::json::v2::json().opAssign(value) );
                 }
                 /// Set key value pair, return the old value if it exists otherwise null
+                /// @param keyName The key to set.
+                /// @param value The integer value to store at that key.
                 meta_api::json::v2::json@ Set( const string&in keyName, const int value )
                 {
                     return @this.Set( keyName, meta_api::json::v2::json().opAssign(value) );
                 }
                 /// Set key value pair, return the old value if it exists otherwise null
+                /// @param keyName The key to set.
+                /// @param value The floating-point value to store at that key.
                 meta_api::json::v2::json@ Set( const string&in keyName, const float value )
                 {
                     return @this.Set( keyName, meta_api::json::v2::json().opAssign(value) );
                 }
                 /// Set key value pair, return the old value if it exists otherwise null
+                /// @param keyName The key to set.
+                /// @param value The string value to store at that key.
                 meta_api::json::v2::json@ Set( const string&in keyName, const string&in value )
                 {
                     return @this.Set( keyName, meta_api::json::v2::json().opAssign(value) );
                 }
+                /// @param keyName The key to set.
+                /// @param value The null value to store at that key.
                 meta_api::json::v2::json@ Set( const string&in keyName, const meta_api::json::v2::Null&in value )
                 {
                     return @this.Set( keyName, meta_api::json::v2::json().opAssign(value) );
@@ -368,6 +397,8 @@ namespace meta_api
 
                 /// Get the value&out and return whatever the value exists or not.
                 /// If strict is false floats and booleans are converted to integer and returned.
+                /// @param keyName The key whose JSON value is requested.
+                /// @param value Receives the JSON value when the key exists.
                 bool Get( const string&in keyName, meta_api::json::v2::json@&out value ) const
                 {
                     return ( this.m_KeyValues.exists( keyName ) && ( @value = cast<meta_api::json::v2::json@>( this.m_KeyValues[ keyName ] ) ) !is null );
@@ -375,6 +406,8 @@ namespace meta_api
 
                 /// Get the value&out and return whatever the value exists or not
                 /// If strict is false floats and integers are converted to boolean and returned.
+                /// @param value Receives the converted Boolean value.
+                /// @param strict Require a Boolean value when true.
                 bool Get( bool&out value, bool strict = true ) const
                 {
                     if( strict && this.Type != meta_api::json::Type::Boolean )
@@ -398,6 +431,9 @@ namespace meta_api
 
                 /// Get the value&out and return whatever the value exists or not
                 /// If strict is false floats and integers are converted to boolean and returned.
+                /// @param keyName The key whose Boolean value is requested.
+                /// @param value Receives the converted Boolean value.
+                /// @param strict Require a Boolean value when true.
                 bool Get( const string&in keyName, bool&out value, bool strict = true ) const
                 {
                     meta_api::json::v2::json@ obj;
@@ -406,6 +442,8 @@ namespace meta_api
 
                 /// Get the value&out and return whatever the value exists or not.
                 /// If strict is false floats and booleans are converted to integer and returned.
+                /// @param value Receives the converted integer value.
+                /// @param strict Require an integer value when true.
                 bool Get( int&out value, bool strict = true ) const
                 {
                     if( strict && this.Type != meta_api::json::Type::Integer )
@@ -429,6 +467,9 @@ namespace meta_api
 
                 /// Get the value&out and return whatever the value exists or not.
                 /// If strict is false floats and booleans are converted to integer and returned.
+                /// @param keyName The key whose integer value is requested.
+                /// @param value Receives the converted integer value.
+                /// @param strict Require an integer value when true.
                 bool Get( const string&in keyName, int&out value, bool strict = true ) const
                 {
                     meta_api::json::v2::json@ obj;
@@ -437,6 +478,8 @@ namespace meta_api
 
                 /// Get the value&out and return whatever the value exists or not.
                 /// If strict is false integers and booleans are converted to float and returned.
+                /// @param value Receives the converted floating-point value.
+                /// @param strict Require a float value when true.
                 bool Get( float&out value, bool strict = true ) const
                 {
                     if( strict && this.Type != meta_api::json::Type::Float )
@@ -460,6 +503,9 @@ namespace meta_api
 
                 /// Get the value&out and return whatever the value exists or not.
                 /// If strict is false integers and booleans are converted to float and returned.
+                /// @param keyName The key whose floating-point value is requested.
+                /// @param value Receives the converted floating-point value.
+                /// @param strict Require a float value when true.
                 bool Get( const string&in keyName, float&out value, bool strict = true ) const
                 {
                     meta_api::json::v2::json@ obj;
@@ -467,6 +513,9 @@ namespace meta_api
                 }
 
                 /// Get the value&out and return whatever the value exists or not
+                /// @param value Receives the string representation of the stored value.
+                /// @param strict Require a string value when true.
+                /// @param dummy Reserved placeholder used to distinguish this overload.
                 bool Get( string&out value, bool strict = true, const string&in dummy = String::EMPTY_STRING ) const
                 {
                     if( strict && this.Type != meta_api::json::Type::String )
@@ -491,6 +540,9 @@ namespace meta_api
                 }
 
                 /// Get the value&out and return whatever the value exists or not
+                /// @param keyName The key whose string value is requested.
+                /// @param value Receives the string representation of the stored value.
+                /// @param strict Require a string value when true.
                 bool Get( const string&in keyName, string&out value, bool strict = true ) const
                 {
                     meta_api::json::v2::json@ obj;
@@ -500,6 +552,9 @@ namespace meta_api
                 /// Get the stored value at the given key name or a default value if not exists.
                 /// If store is true the default value is stored in data if not exists
                 /// In this json case if the default value is null we will initialize a instance and return that
+                /// @param keyName The key to look up.
+                /// @param value The fallback JSON value to return, or null to create an empty JSON object.
+                /// @param store Store the fallback value under the key when it is absent.
                 meta_api::json::v2::json@ ValueOrDefault( const string&in keyName, meta_api::json::v2::json@ value = null, bool store = false )
                 {
                     if( !this.Get( keyName, value ) )
@@ -514,6 +569,10 @@ namespace meta_api
                 /// Get the stored value at the given key name or a default value if not exists.
                 /// If store is true the default value is stored in data if not exists
                 /// If strict is false integers and floats are converted to boolean and returned.
+                /// @param keyName The key to look up.
+                /// @param value The Boolean fallback value.
+                /// @param store Store the fallback value under the key when it is absent.
+                /// @param strict Require a Boolean value when true.
                 bool ValueOrDefault( const string&in keyName, bool value, bool store = false, bool strict = true )
                 {
 // https://github.com/anjo76/angelscript/issues/70
@@ -534,6 +593,10 @@ namespace meta_api
                 /// Get the stored value at the given key name or a default value if not exists.
                 /// If store is true the default value is stored in data if not exists
                 /// If strict is false booleans and floats are converted to integer and returned.
+                /// @param keyName The key to look up.
+                /// @param value The integer fallback value.
+                /// @param store Store the fallback value under the key when it is absent.
+                /// @param strict Require an integer value when true.
                 int ValueOrDefault( const string&in keyName, int value, bool store = false, bool strict = true )
                 {
 // https://github.com/anjo76/angelscript/issues/70
@@ -554,6 +617,10 @@ namespace meta_api
                 /// Get the stored value at the given key name or a default value if not exists.
                 /// If store is true the default value is stored in data if not exists
                 /// If strict is false booleans and integers are converted to float and returned.
+                /// @param keyName The key to look up.
+                /// @param value The floating-point fallback value.
+                /// @param store Store the fallback value under the key when it is absent.
+                /// @param strict Require a float value when true.
                 float ValueOrDefault( const string&in keyName, float value, bool store = false, bool strict = true )
                 {
 // https://github.com/anjo76/angelscript/issues/70
@@ -574,6 +641,10 @@ namespace meta_api
                 /// Get the stored value at the given key name or a default value if not exists.
                 /// If store is true the default value is stored in data if not exists
                 /// If strict is false booleans and integers are converted to float and returned.
+                /// @param keyName The key to look up.
+                /// @param value The string fallback value.
+                /// @param store Store the fallback value under the key when it is absent.
+                /// @param strict Require a string value when true.
                 string ValueOrDefault( const string&in keyName, string&in value, bool store = false, bool strict = true )
                 {
 // https://github.com/anjo76/angelscript/issues/70
@@ -599,6 +670,7 @@ namespace meta_api
                 /// Array methods
                 /// ======================================
                 /// For arrays, push value to the last index
+                /// @param value The JSON value to append.
                 meta_api::json::v2::json@ Append( meta_api::json::v2::json@ value )
                 {
                     if( this.Type != meta_api::json::Type::Array )
@@ -618,6 +690,7 @@ namespace meta_api
                 }
 
                 /// Get the value at the given key
+                /// @param keyName The key to retrieve.
                 meta_api::json::v2::json@ opIndex( const string&in keyName ) const
                 {
                     meta_api::json::v2::json@ value;
@@ -625,6 +698,7 @@ namespace meta_api
                     return value;
                 }
 
+                /// @param index The zero-based array index to retrieve.
                 meta_api::json::v2::json@ opIndex( uint index ) const
                 {
                     if( index >= this.m_KeyNames.length() )
@@ -637,17 +711,23 @@ namespace meta_api
                 }
 
                 /// For arrays, push value to the last index
+                /// @param value The Boolean value to append.
                 meta_api::json::v2::json@ Append( const bool value ) { return this.Append( meta_api::json::v2::json().opAssign(value) ); }
                 /// For arrays, push value to the last index
+                /// @param value The integer value to append.
                 meta_api::json::v2::json@ Append( const int value ) { return this.Append( meta_api::json::v2::json().opAssign(value) ); }
                 /// For arrays, push value to the last index
+                /// @param value The floating-point value to append.
                 meta_api::json::v2::json@ Append( const float value ) { return this.Append( meta_api::json::v2::json().opAssign(value) ); }
                 /// For arrays, push value to the last index
+                /// @param value The string value to append.
                 meta_api::json::v2::json@ Append( const string&in value ) { return this.Append( meta_api::json::v2::json().opAssign(value) ); }
                 /// For arrays, push value to the last index
+                /// @param value The null value to append.
                 meta_api::json::v2::json@ Append( const meta_api::json::v2::Null&in value ) { return this.Append( meta_api::json::v2::json().opAssign(value) ); }
 
                 /// Removes the value at the given key. returns the value
+                /// @param key The key of the value to remove.
                 meta_api::json::v2::json@ Remove( const string&in key )
                 {
                     if( !this.is_object() )
@@ -667,6 +747,7 @@ namespace meta_api
                 }
 
                 /// Removes the value at the given index. returns the value
+                /// @param index The zero-based index of the value to remove.
                 meta_api::json::v2::json@ Remove( uint index )
                 {
                     if( !this.is_structured() )
@@ -716,6 +797,11 @@ namespace meta_api
                     return meta_api::json::Version::V2;
                 }
 
+                /**
+                *   @brief Parse the current JSON object or array into a JSON value.
+                *   @param obj Receives the parsed JSON value.
+                *   @param objectType The JSON container type being parsed.
+                **/
                 bool Parse( meta_api::json::v2::json@&out obj, const meta_api::json::Type&in objectType )
                 {
                     if( obj is null )
@@ -777,6 +863,11 @@ namespace meta_api
                 }
             }
 
+            /**
+            *   @brief Serialize a JSON value using an existing serializer.
+            *   @param obj The JSON value to serialize.
+            *   @param Serializer The serializer that receives the value's entries.
+            **/
             string Serialize( const meta_api::json::v2::json@ obj, meta_api::json::parser::Serializer@ Serializer )
             {
                 const array<string>@ keys = obj.Keys;
@@ -845,6 +936,10 @@ namespace meta_api
             *   @brief Serializes obj
             *   filename: if provided is a path to write to a file at scripts(module type)/store/(filename).json
             *   If the object failed to parse for any reason it will write "{}" to the file only if the file doesn't exists
+            *   @param obj The JSON value to serialize.
+            *   @param filename Optional output filename; an empty string returns the serialized text instead.
+            *   @param indents The indentation mode used to format the output.
+            *   @param style The placement style for nested object and array delimiters.
             **/
             string Serialize(
                 const meta_api::json::v2::json@ obj,
@@ -870,6 +965,8 @@ namespace meta_api
             *   @brief Deserializes str into obj,
             *   If str ends with ".json" we will open a file. No need to specify scripts/plugins/ or scripts/maps/ it will be automatically detected.
             *   If str is a file and is pointing to store/ and the file couldn't be opened it will be writed and return a valid handle
+            *   @param str JSON text to parse, or a recognized JSON filename to load.
+            *   @param obj Receives the deserialized JSON value.
             **/
             bool Deserialize( const string&in str, meta_api::json::v2::json@&out obj )
             {
@@ -878,6 +975,12 @@ namespace meta_api
                 return Deserializer.Parse( obj, Deserializer.Initialize() );
             }
 
+            /**
+            *   @brief Deserialize JSON text or a file into a JSON value and report the result code.
+            *   @param str JSON text to parse, or a recognized JSON filename to load.
+            *   @param obj Receives the deserialized JSON value.
+            *   @param err Receives the error code describing the deserialization result.
+            **/
             bool Deserialize( const string&in str, meta_api::json::v2::json@&out obj, meta_api::json::Error&out err )
             {
                 meta_api::json::v2::__Deserializer__ Deserializer();

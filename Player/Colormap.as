@@ -6,29 +6,20 @@ namespace Player
     namespace Colormap
     {
         /**
-        *   @brief Value returned by Bottom and Top if the player is null.
-        **/
-        const float InvalidColor = -1;
-
-        /**
-        *   @brief Bottom color value. return InvalidColor if the player is null.
+        *   @brief Gets the player's bottom colormap component normalized to the range [0, 1].
+        *   @param player Player whose bottom colormap component is read.
         **/
         float Bottom( CBasePlayer@ player )
         {
-            if( player is null )
-                return InvalidColor;
-
             return float( float( uint8( ( player.pev.colormap & 0xFF00 ) >> 8 ) ) / 255.0f );
         }
 
         /**
-        *   @brief Top color value. return InvalidColor if the player is null.
+        *   @brief Gets the player's top colormap component normalized to the range [0, 1].
+        *   @param player Player whose top colormap component is read. If null.
         **/
         float Top( CBasePlayer@ player )
         {
-            if( player is null )
-                return InvalidColor;
-
             return float( float( uint8( player.pev.colormap & 0x00FF ) ) / 255.0f );
         }
     }

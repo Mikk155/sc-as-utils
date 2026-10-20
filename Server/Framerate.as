@@ -18,6 +18,12 @@ namespace Server
     // Server's frame-rate
     namespace Framerate
     {
+        /**
+         * Callback invoked each server frame with the latest framerate measurements.
+         *
+         * @param data Read-only snapshot containing current rate, frame counts, and
+         *             whether this update marks the end of the measured second.
+         */
         funcdef void FrameRateCallback( const ServerFramerate@ data );
 
         /**
@@ -98,7 +104,9 @@ namespace Server
         __CThinker__@ __Thinker__;
 
         /**
-        *   @brief Set a callback method for every frame update
+        *   @brief Registers a callback to receive server framerate updates.
+        *   @param callback Function called each server frame with the latest measurements.
+        *   @return The registered callback, for convenient storage or later removal.
         **/
         FrameRateCallback@ SetCallback( FrameRateCallback@ callback )
         {
@@ -111,7 +119,8 @@ namespace Server
         }
 
         /**
-        *   @brief remove a callback method from the list
+        *   @brief Removes a previously registered callback.
+        *   @param callback Callback reference to remove. Passing an unregistered callback has no effect.
         **/
         void RemoveCallback( FrameRateCallback@ callback )
         {

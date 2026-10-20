@@ -10,6 +10,12 @@ final class Expect
     string title;
     bool Failed;
 
+    /**
+    *   @brief Create and record the result of one JSON test.
+    *   @param title The test name shown in the result log.
+    *   @param expected The Boolean result the test is expected to produce.
+    *   @param condition The actual Boolean result being checked.
+    **/
     Expect( string title, bool expected, bool condition )
     {
         this.title = title;
@@ -58,8 +64,10 @@ interface ITest
     ]
 }
     */
+    /// @param serialized JSON input containing the values the implementation is expected to support.
     bool DeserializeAllTypes( const string&in serialized );
     // serialized could be anything invalid, this method is called for all the invalidation tests and should only return the object deserialization result
+    /// @param serialized JSON input to pass through the implementation's generic deserializer.
     bool DeserializeGeneric( const string&in serialized );
     // For your own tests initialize an Expect class passing up a title, the expected result and the conditional that should be equal to the expected
     void AdditionalTests();
@@ -75,6 +83,10 @@ uint __AllTests__ = 0;
 array<ITest@> __Tests__(0);
 
 // Register a test class
+/**
+*   @brief Register a JSON test implementation.
+*   @param test The test implementation to add to the registry.
+**/
 void Register( ITest@ test )
 {
 if( test is null )
@@ -87,6 +99,11 @@ __Tests__.insertLast( test );
 
 array<Expect@> __Results__(0);
 
+/**
+*   @brief Run the shared JSON test suite for one implementation.
+*   @param test The test implementation to exercise.
+*   @param metamod Indicates whether the run is labeled as a Metamod run.
+**/
 void __RunTests__( ITest@ test, bool metamod )
 {
 __AllTests__++;
@@ -168,6 +185,10 @@ test.Logger.info( "===== All done! =====\n==================" );
 __Results__.resize(0);
 }
 
+/**
+*   @brief Run tests for one registered implementation.
+*   @param test The test implementation to run.
+**/
 void Start( ITest@ test )
 {
 if( test is null ) {
@@ -222,6 +243,10 @@ __AllTestsTotal__
 g_EngineFuncs.ServerPrint(buffer);
 } // void StartAll
 
+/**
+*   @brief Run tests for the registered implementation of a JSON version.
+*   @param version The JSON API version whose implementation should be tested.
+**/
 void Start( const Version&in version )
 {
 for( uint ui = 0; ui < __Tests__.length(); ui++ )

@@ -17,6 +17,7 @@ namespace meta_api
                         return this.m_Strict;
                     }
 
+                    /// @param strict Set to true to stop validation at the first invalid value.
                     Validator( bool strict )
                     {
                         this.m_Strict = strict;
@@ -29,7 +30,12 @@ namespace meta_api
                     private
                         uint errors = 0;
 
-                    // Return whatever the given obj is of type of the given string.
+                    /**
+                    *   @brief Check whether a JSON value matches the type named by a schema.
+                    *   @param obj The JSON value whose type is checked.
+                    *   @param schema The schema object containing the expected type.
+                    *   @param name The path or label used to identify the value in validation errors.
+                    **/
                     bool is_type( json@ obj, json@ schema, const string&in name )
                     {
                         if( !schema.Contains( "type" ) )
@@ -99,6 +105,12 @@ namespace meta_api
                         return false;
                     }
 
+                    /**
+                    *   @brief Validate a JSON value recursively against a schema object.
+                    *   @param obj The JSON value to validate; non-strict validation may modify it.
+                    *   @param schema The schema object describing the expected structure and constraints.
+                    *   @param name The path or label used to identify the value in validation errors.
+                    **/
                     private bool Validate( json@ obj, json@ schema, const string&in name )
                     {
                         if( !this.is_type( obj, schema, name ) && this.strict )
@@ -259,6 +271,11 @@ namespace meta_api
                         return ( this.errors == 0 );
                     }
 
+                    /**
+                    *   @brief Validate a JSON value against a schema object using this validator's strictness.
+                    *   @param obj The JSON value to validate.
+                    *   @param schema The schema object describing the expected structure and constraints.
+                    **/
                     bool Validate( json@ obj, json@ schema )
                     {
                         return this.Validate( obj, schema, "<root>" );
@@ -268,6 +285,9 @@ namespace meta_api
                 /// Validate obj against schema
                 /// strict: if true the method will return false right away stoping the validation.
                 /// Otherwise the validation will keep going removing invalid values, attempting to set defaults if provided by the schema.
+                /// @param obj The JSON value to validate; non-strict validation may modify it.
+                /// @param schema The schema object describing the expected structure and constraints.
+                /// @param strict Set to true to stop on the first invalid value; false continues and may remove invalid values or apply defaults.
                 bool Validate( json@ obj, json@ schema, bool strict = false )
                 {
                     Validator validator( strict );
@@ -277,6 +297,9 @@ namespace meta_api
                 /// Validate obj against schema
                 /// strict: if true the method will return false right away stoping the validation.
                 /// Otherwise the validation will keep going removing invalid values, attempting to set defaults if provided by the schema.
+                /// @param obj The JSON value to validate; non-strict validation may modify it.
+                /// @param schema JSON text describing the schema.
+                /// @param strict Set to true to stop on the first invalid value; false continues and may remove invalid values or apply defaults.
                 bool Validate( json@ obj, const string&in schema, bool strict = false )
                 {
                     json@ schemaObject;

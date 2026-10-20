@@ -8,6 +8,8 @@ namespace meta_api
             {
                 /**
                 *   @brief Return whatever the given obj has an object at key containing the current map name in it.
+                *   @param obj The dictionary that may contain the map list.
+                *   @param key The dictionary key holding the list of map names.
                 **/
                 bool IsMapListed( dictionary@ obj, const string&in key = "map_blacklist" )
                 {

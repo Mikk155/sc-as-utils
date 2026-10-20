@@ -2,6 +2,12 @@
 
 namespace Player
 {
+    /**
+     * Finds a connected player by the identifier returned from GetUniqueID.
+     *
+     * @param authID Steam authentication ID to match. For bots and LAN players, this
+     *               must be the corresponding synthetic ID produced by GetUniqueID.
+     */
     CBasePlayer@ FindPlayerBySteamID( const string&in authID )
     {
         CBasePlayer@ player = null;

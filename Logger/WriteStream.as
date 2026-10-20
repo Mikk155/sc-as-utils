@@ -9,7 +9,8 @@ namespace Logger
 
         /**
         *   Create a callback onto loggers for writing logs into an external file with the given name.
-        *   exists_ok: if true logs are appended otherwise the file is cleared first
+        *   @param fileName The file name used for the log output under the module's store directory.
+        *   @param exists_ok If true, preserve an existing file and append logs; otherwise, clear it first.
         **/
         bool Set( const string&in fileName, bool exists_ok = false )
         {
@@ -71,6 +72,7 @@ namespace Logger
             return true;
         }
 
+        /** @param fileName The file name whose logging destination should be removed. */
         bool Del( const string&in fileName )
         {
             bool result = Logger::WriteStream::gpStreams.delete( fileName );
@@ -81,6 +83,11 @@ namespace Logger
             return result;
         }
 
+        /**
+        *   @param level The log level associated with the message.
+        *   @param message The formatted message to write to each configured file.
+        *   @param bOverride Output flag indicating whether normal console output should be suppressed.
+        */
         HookReturnCode gpStream( const Logger::ASLogLevel@ level, const string&in message, bool&out bOverride )
         {
             const array<string> fileNames = Logger::WriteStream::gpStreams.getKeys();

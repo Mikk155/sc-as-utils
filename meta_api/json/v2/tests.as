@@ -29,12 +29,14 @@ namespace meta_api
                     return this.m_Logger;
                 }
 
+                /// @param serialized JSON text or a JSON filename to pass to the generic deserializer.
                 bool DeserializeGeneric( const string&in serialized ) override
                 {
                     json@ obj;
                     return Deserialize( serialized, obj );
                 }
 
+                /// @param serialized JSON text or a JSON filename containing the supported value types.
                 bool DeserializeAllTypes( const string&in serialized ) override
                 {
                     json@ obj;

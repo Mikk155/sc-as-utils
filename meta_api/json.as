@@ -51,32 +51,53 @@ namespace meta_api
                 __SetModuleName__();
             }
 
+            /// @param Name The label included in this logger's output.
             Logger( const string&in Name )
             {
                 __SetModuleName__();
                 this.name = Name;
             }
 
+            /**
+            *   @brief Print a formatted error message from the shared console buffer.
+            *   @param fmt Indicates that the message has already been formatted in the shared console buffer.
+            **/
             void error( bool fmt ) const {
                 snprintf( cout, "[%1] %2 Error: %3\n", this.module, this.name, cout );
                 g_EngineFuncs.ServerPrint(cout); cout.Clear();
             }
 
+            /**
+            *   @brief Print an error message.
+            *   @param message The error text to print.
+            **/
             void error( const string&in message ) const {
                 snprintf( cout, "[%1] %2 Error: %3\n", this.module, this.name, message );
                 g_EngineFuncs.ServerPrint(cout); cout.Clear();
             }
 
+            /**
+            *   @brief Print a formatted informational message from the shared console buffer.
+            *   @param fmt Indicates that the message has already been formatted in the shared console buffer.
+            **/
             void info( bool fmt ) const {
                 snprintf( cout, "[%1] %2 Info: %3\n", this.module, this.name, cout );
                 g_EngineFuncs.ServerPrint(cout); cout.Clear();
             }
 
+            /**
+            *   @brief Print an informational message.
+            *   @param message The informational text to print.
+            **/
             void info( const string&in message ) const {
                 snprintf( cout, "[%1] %2 Info: %3\n", this.module, this.name, message );
                 g_EngineFuncs.ServerPrint(cout); cout.Clear();
             }
 
+            /**
+            *   @brief Print a formatted debug message from the shared console buffer when debugging is enabled.
+            *   @param fmt Indicates that the message has already been formatted in the shared console buffer.
+            **/
             void debug( bool fmt ) const {
                 if( meta_api::json::debug ) {
                     snprintf( cout, "[%1] %2 Debug: %3\n", this.module, this.name, cout );
@@ -84,6 +105,10 @@ namespace meta_api
                 }
             }
 
+            /**
+            *   @brief Print a debug message when debugging is enabled.
+            *   @param message The debug text to print.
+            **/
             void debug( const string&in message ) const {
                 if( meta_api::json::debug ) {
                     snprintf( cout, "[%1] %2 Debug: %3\n", this.module, this.name, message );
@@ -98,6 +123,9 @@ namespace meta_api
         /**
         *   @brief return whatever str is a valid file name and formats the output filename
         *   IsCache: if true the path is at the store/ folder
+        *   @param str The JSON path to validate; recognized scripts and module prefixes are removed from this input.
+        *   @param filename Receives the normalized script path when the input is a JSON filename.
+        *   @param IsCache Set to true to place the normalized path under the module's store directory.
         **/
         bool GetFilename( string&in str, string&out filename, bool IsCache = false )
         {
@@ -144,7 +172,10 @@ namespace meta_api
 
         namespace Type
         {
-            // Convert the given Type to string for printing
+            /**
+            *   @brief Convert a JSON value type to its display name.
+            *   @param type The JSON value type to convert.
+            **/
             const string& ToString( const meta_api::json::Type&in type )
             {
                 switch( type )
@@ -161,7 +192,10 @@ namespace meta_api
                 return "Undefined";
             }
 
-            // Convert the given string to Type
+            /**
+            *   @brief Convert a type name to its JSON value type.
+            *   @param type The type name to parse; it is converted to lowercase during parsing.
+            **/
             Type FromString( string&in type )
             {
                 type.ToLowercase();
@@ -249,7 +283,11 @@ namespace meta_api
                 KandR
             };
 
-            /// Escape sequences from string, if add_quitation is true we also add a suffix and prefix quote
+            /**
+            *   @brief Escape JSON special characters in a string.
+            *   @param str The string to escape; it is modified in place.
+            *   @param add_quotation Set to true to surround the escaped string with quotation marks.
+            **/
             // -TODO iterate to see something isn't actually escaped
             string EscapeSequences( string&in str, bool add_quotation = false )
             {
@@ -284,11 +322,21 @@ namespace meta_api
 
                 const meta_api::json::Version GetVersion() const override { return this.version; }
 
+                /// @param type The JSON type of the nested object or array serializer.
                 Serializer@ Object( const meta_api::json::Type&in type )
                 {
                     return Serializer( this.m_Depth + 1, String::EMPTY_STRING, type, this.m_Style, this.m_Indents, this.GetVersion() );
                 }
 
+                /**
+                *   @brief Create a serializer for a JSON object or array.
+                *   @param depth The nesting depth used to produce indentation.
+                *   @param filename Optional destination filename; an empty string keeps output in memory.
+                *   @param type The root JSON type to serialize; only objects and arrays are supported.
+                *   @param style The placement style for nested object and array delimiters.
+                *   @param indents The indentation mode used to format serialized output.
+                *   @param version The JSON API version associated with this serializer.
+                **/
                 Serializer(
                     uint depth,
                     const string&in filename,
@@ -461,7 +509,12 @@ namespace meta_api
                 private
                     bool m_HasAnyKey = false;
 
-                /// Insert a key-value
+                /**
+                *   @brief Insert a key-value pair into the serialized output.
+                *   @param key The key associated with the value; ignored when serializing an array.
+                *   @param value The serialized representation of the value.
+                *   @param type The JSON type that determines how the value is written.
+                **/
                 void KeyValue( const string&in key, const string&in value, const meta_api::json::Type&in type )
                 {
                     if( value.IsEmpty() && type != meta_api::json::Type::String )
@@ -616,7 +669,10 @@ namespace meta_api
                     return this.m_CurrentLinePosition;
                 }
 
-                /// Move the position index ahead by one or more if given argument. returns the new position.
+                /**
+                *   @brief Advance the read cursor and update line and column tracking.
+                *   @param overhead The number of characters to consume.
+                **/
                 uint AdvancePosition( uint overhead = 1 )
                 {
                     // Call every time on reading new characters for updating position for error messages
@@ -734,6 +790,10 @@ namespace meta_api
                     this.Shutdown();
                 }
 
+                /**
+                *   @brief Set the input content or file path to be deserialized.
+                *   @param serialized JSON text, or a JSON filename recognized by GetFilename.
+                **/
                 void SetSerialized( const string&in serialized )
                 {
                     /// Is serialized a file path?
@@ -866,6 +926,12 @@ namespace meta_api
                     uint m_DataCurrent = 1;
 
                 private
+                    /**
+                    *   @brief Report an unexpected token and mark a parsing error.
+                    *   @param expected The token or content expected at the current position.
+                    *   @param unexpected The token encountered instead.
+                    *   @param comment Optional context to add to the error message.
+                    **/
                     bool ErrorUnexpected( const string&in expected, const string&in unexpected, const string&in comment = String::EMPTY_STRING )
                     {
                         bool has_comment = comment.IsEmpty();
@@ -883,6 +949,12 @@ namespace meta_api
                         return false;
                     }
 
+                /**
+                *   @brief Finish parsing the current object or array and validate its closing separator.
+                *   @param ObjectType The type of the object or array being closed.
+                *   @param had_comma Whether a separator comma preceded the closing token.
+                *   @param pairs The number of key-value pairs already read.
+                **/
                 private void CloseObject( const meta_api::json::Type&in ObjectType, bool had_comma, int pairs )
                 {
                     dictionary@ currentData = this.m_Data[this.m_DataCurrent-1];
@@ -926,7 +998,11 @@ namespace meta_api
                     }
                 }
 
-                /// Advance in the parser. updates key and value and type. if the type is an array the key contains the value index
+                /**
+                *   @brief Read the next key-value pair from the current object or array.
+                *   @param ObjectType The type of container currently being parsed.
+                *   @param pair Receives the next key, value, and value type.
+                **/
                 bool Advance( const meta_api::json::Type&in ObjectType, KeyValuePair@&out pair )
                 {
                     if( !this.Ok )

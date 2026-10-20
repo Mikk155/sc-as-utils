@@ -6,6 +6,11 @@ namespace Logger
     uint m_TestsPassed = 0;
     uint m_TestsFailed = 0;
 
+    /**
+    *   @param title The test name displayed with its result.
+    *   @param expected The boolean value the condition is expected to produce.
+    *   @param condition The boolean result to compare with expected.
+    */
     bool TestExpect( const string&in title, bool expected, bool condition )
     {
         if( condition != expected )
@@ -25,6 +30,11 @@ namespace Logger
     funcdef bool Condition();
 
     // Compare condition to expected for internal tests return whatever condition is expected.
+    /**
+    *   @param title The test name displayed with its result.
+    *   @param expected The boolean value the callback is expected to produce.
+    *   @param condition The callback that returns the condition to test.
+    */
     bool TestExpect( const string&in title, bool expected, Condition@ condition )
     {
         if( condition !is null )
@@ -32,10 +42,19 @@ namespace Logger
         return false;
     }
 
-    // return 0/1 true false, -1 means re-call method, the int argument is the times your callback has been called
+    /**
+    *   @param calls Number of times the asynchronous callback has already been invoked.
+    *   @return 0 for false, 1 for true, or -1 to schedule another invocation.
+    */
     funcdef int AsyncCallback( int );
     int m_AsyncCallbacks = 0;
 
+    /**
+    *   @param title The test name displayed with its result.
+    *   @param expected The boolean result expected when the callback completes.
+    *   @param condition The callback that performs or checks the asynchronous test.
+    *   @param callTime The callback invocation count to pass on the next call; defaults to zero.
+    */
     void TestExpectAsync( const string&in title, bool expected, AsyncCallback@ condition, int callTime = 0 )
     {
         if( callTime == 0 )

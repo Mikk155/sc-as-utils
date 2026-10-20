@@ -1,7 +1,8 @@
 namespace Player
 {
     /**
-    *   @brief Respawn the given player without making him lose his weapon loadout.
+    *   @brief Respawns a player and reports whether they are alive afterward.
+    *   @param player Player to revive and respawn. The player's weapon loadout is retained.
     **/
     bool RespawnPlayer( CBasePlayer@ player )
     {

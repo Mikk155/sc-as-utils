@@ -5,10 +5,10 @@ namespace Logger
 {
     /**
     *   Called when a message is about to be printed.
-    *   level: Logge level
-    *   message: Formated string message
-    *   bOverride: prevent the message from being printed to console.
-    *   return: HOOK_HANDLED to stop calling other callbacks. HOOK_CONTINUE otherwise.
+    *   @param level The log level associated with the message.
+    *   @param message The formatted message about to be logged.
+    *   @param bOverride Set to true to prevent the message from being printed to the console.
+    *   @return HOOK_HANDLED to stop calling other callbacks; otherwise, return HOOK_CONTINUE.
     **/
     funcdef HookReturnCode PrintCallback( const Logger::ASLogLevel@ level, const string&in message, bool&out bOverride );
     // -TODO Move into the logger manager when #77 is closed: https://github.com/anjo76/angelscript/issues/77
@@ -48,6 +48,7 @@ namespace Logger
         private
             Logger::State m_State;
 
+        /** @param state The state to assign to this log level. */
         void SetState( const Logger::State&in state )
         {
             this.m_State = state;
@@ -80,6 +81,11 @@ namespace Logger
         // Logger::opIndex requires this.
         ASLogLevel() {}
 
+        /**
+        *   @param level The name of this log level.
+        *   @param owner The logger that owns this level.
+        *   @param state The initial state of the level; defaults to Off.
+        */
         ASLogLevel( const string level, Logger@ owner, State state = State::Off )
         {
             this.m_LevelName = level;
@@ -119,6 +125,11 @@ namespace Logger
         }
 
         protected
+            /**
+            *   @param callbacks The callbacks to invoke for this message.
+            *   @param message The formatted message to pass to each callback.
+            *   @param handled Set to true when a callback handles the message.
+            */
             bool ShouldDeliver( array<Logger::PrintCallback@> &in callbacks, const string &in message, bool&out handled ) const
             {
                 bool result = true;
@@ -149,6 +160,10 @@ namespace Logger
             }
 
         // Deliver a message to the console or custom destination
+        /**
+        *   @param message The message to deliver; each "{}" placeholder is replaced by an argument.
+        *   @param args Values to substitute for placeholders, or null when no values are supplied.
+        */
         Logger::PrintResult Deliver( const string&in message, const array<string>@ args = null ) const
         {
             if( !this.IsActive() )
@@ -229,6 +244,7 @@ namespace Logger
         }
 
         // Return whatever result is been printed/handled
+        /** @param result The delivery result to convert to a success value. */
         bool Delivered( Logger::PrintResult result ) const
         {
             switch( result )
@@ -243,37 +259,102 @@ namespace Logger
             }
         }
 
+        /** @param message The message to print without substitution arguments. */
         bool Print( const string&in message ) const
         {
             return this.Delivered( this.Deliver( message, null ) );
         }
 
+        /**
+        *   @param message The message to print, containing "{}" placeholders for values in args.
+        *   @param args Values to substitute into the message placeholders.
+        */
         bool Print( const string&in message, const array<string>&in args ) const
         {
             return this.Delivered( this.Deliver( message, args ) );
         }
 
+        /**
+        *   @param message The message to print, containing a "{}" placeholder for a1.
+        *   @param a1 The value substituted for the first "{}" placeholder.
+        */
         bool Print( const string&in message, const string&in a1 ) const {
             return this.Delivered( this.Deliver( message, { a1 } ) );
         }
+        /**
+        *   @param message The message to print, containing "{}" placeholders for a1 and a2.
+        *   @param a1 The value substituted for the first "{}" placeholder.
+        *   @param a2 The value substituted for the second "{}" placeholder.
+        */
         bool Print( const string&in message, const string&in a1, const string&in a2 ) const {
             return this.Delivered( this.Deliver( message, { a1, a2 } ) );
         }
+        /**
+        *   @param message The message to print, containing "{}" placeholders for a1 through a3.
+        *   @param a1 The value substituted for the first "{}" placeholder.
+        *   @param a2 The value substituted for the second "{}" placeholder.
+        *   @param a3 The value substituted for the third "{}" placeholder.
+        */
         bool Print( const string&in message, const string&in a1, const string&in a2, const string&in a3 ) const {
             return this.Delivered( this.Deliver( message, { a1, a2, a3 } ) );
         }
+        /**
+        *   @param message The message to print, containing "{}" placeholders for a1 through a4.
+        *   @param a1 The value substituted for the first "{}" placeholder.
+        *   @param a2 The value substituted for the second "{}" placeholder.
+        *   @param a3 The value substituted for the third "{}" placeholder.
+        *   @param a4 The value substituted for the fourth "{}" placeholder.
+        */
         bool Print( const string&in message, const string&in a1, const string&in a2, const string&in a3, const string&in a4 ) const {
             return this.Delivered( this.Deliver( message, { a1, a2, a3, a4 } ) );
         }
+        /**
+        *   @param message The message to print, containing "{}" placeholders for a1 through a5.
+        *   @param a1 The value substituted for the first "{}" placeholder.
+        *   @param a2 The value substituted for the second "{}" placeholder.
+        *   @param a3 The value substituted for the third "{}" placeholder.
+        *   @param a4 The value substituted for the fourth "{}" placeholder.
+        *   @param a5 The value substituted for the fifth "{}" placeholder.
+        */
         bool Print( const string&in message, const string&in a1, const string&in a2, const string&in a3, const string&in a4, const string&in a5 ) const {
             return this.Delivered( this.Deliver( message, { a1, a2, a3, a4, a5 } ) );
         }
+        /**
+        *   @param message The message to print, containing "{}" placeholders for a1 through a6.
+        *   @param a1 The value substituted for the first "{}" placeholder.
+        *   @param a2 The value substituted for the second "{}" placeholder.
+        *   @param a3 The value substituted for the third "{}" placeholder.
+        *   @param a4 The value substituted for the fourth "{}" placeholder.
+        *   @param a5 The value substituted for the fifth "{}" placeholder.
+        *   @param a6 The value substituted for the sixth "{}" placeholder.
+        */
         bool Print( const string&in message, const string&in a1, const string&in a2, const string&in a3, const string&in a4, const string&in a5, const string&in a6 ) const {
             return this.Delivered( this.Deliver( message, { a1, a2, a3, a4, a5, a6 } ) );
         }
+        /**
+        *   @param message The message to print, containing "{}" placeholders for a1 through a7.
+        *   @param a1 The value substituted for the first "{}" placeholder.
+        *   @param a2 The value substituted for the second "{}" placeholder.
+        *   @param a3 The value substituted for the third "{}" placeholder.
+        *   @param a4 The value substituted for the fourth "{}" placeholder.
+        *   @param a5 The value substituted for the fifth "{}" placeholder.
+        *   @param a6 The value substituted for the sixth "{}" placeholder.
+        *   @param a7 The value substituted for the seventh "{}" placeholder.
+        */
         bool Print( const string&in message, const string&in a1, const string&in a2, const string&in a3, const string&in a4, const string&in a5, const string&in a6, const string&in a7 ) const {
             return this.Delivered( this.Deliver( message, { a1, a2, a3, a4, a5, a6, a7 } ) );
         }
+        /**
+        *   @param message The message to print, containing "{}" placeholders for a1 through a8.
+        *   @param a1 The value substituted for the first "{}" placeholder.
+        *   @param a2 The value substituted for the second "{}" placeholder.
+        *   @param a3 The value substituted for the third "{}" placeholder.
+        *   @param a4 The value substituted for the fourth "{}" placeholder.
+        *   @param a5 The value substituted for the fifth "{}" placeholder.
+        *   @param a6 The value substituted for the sixth "{}" placeholder.
+        *   @param a7 The value substituted for the seventh "{}" placeholder.
+        *   @param a8 The value substituted for the eighth "{}" placeholder.
+        */
         bool Print( const string&in message, const string&in a1, const string&in a2, const string&in a3, const string&in a4, const string&in a5, const string&in a6, const string&in a7, const string&in a8 ) const {
             return this.Delivered( this.Deliver( message, { a1, a2, a3, a4, a5, a6, a7, a8 } ) );
         }
@@ -293,6 +374,7 @@ class Logger
     // Logger::ASLogLevel requires this.
     Logger() {}
 
+    /** @param name The name assigned to this logger. */
     Logger( const string&in name )
     {
         this.m_Name = name;
@@ -302,7 +384,8 @@ class Logger
 
     /**
     *   Set a method to call back every time a log is about to be print.
-    *   return: Handle to the given method or null
+    *   @param callback The callback to register for this logger.
+    *   @return The registered callback handle, or null if it could not be added.
     **/
     Logger::PrintCallback@ SetCallback( Logger::PrintCallback@ callback )
     {
@@ -327,6 +410,7 @@ class Logger
 
     /**
     *   Remove a method from the callback list.
+    *   @param callback The callback to remove from this logger.
     **/
     bool RemoveCallback( Logger::PrintCallback@ callback )
     {
@@ -403,6 +487,7 @@ class Logger
     *   Return the logger level according to the given name.
     *   For example "Critical" returns a handle to this.Critical.
     *   NOTE: Case sensitive is expected.
+    *   @param loggerLevelName The case-sensitive name of the requested log level.
     */
     Logger::ASLogLevel@ opIndex( const string&in loggerLevelName ) const
     {
@@ -414,6 +499,7 @@ class Logger
 
     /**
     *   Return the logger level according to the given index.
+    *   @param index The zero-based index of the requested log level.
     */
     Logger::ASLogLevel@ opIndex( uint index ) const
     {
@@ -425,31 +511,40 @@ class Logger
         return 0;
     }
 
+    /** @param it The current iterator position. */
     bool opForEnd( int it ) const 
     {
         return it >= int(this.m_Levels.getSize());
     }
 
+    /** @param it The current iterator position. */
     int opForNext( int it ) const 
     {
         return it + 1;
     }
 
+    /** @param it The iterator position whose log level is requested. */
     const Logger::ASLogLevel@ opForValue( int it ) const
     {
         return this.opIndex( uint(it) );
     }
 
+    /** @param it The iterator position whose log level is requested. */
     Logger::ASLogLevel@ opForValue( int it )
     {
         return this.opIndex( uint(it) );
     }
 
+    /**
+    *   @param level The name of the log level to update.
+    *   @param state The state to assign to the named level.
+    */
     void SetLevel( const string&in level, Logger::State state )
     {
         g_Logger.SetLevel( this, level, state );
     }
 
+    /** @param state The state to assign to every level in this logger. */
     void SetAllLevels( Logger::State state )
     {
         foreach( auto level : this )
@@ -474,7 +569,8 @@ final class ASLoggerManager
 
     /**
     *   Set a method to call back every time the global logger is about to be print.
-    *   return: Handle to the given method or null
+    *   @param callback The callback to register for the global logger.
+    *   @return The registered callback handle, or null if it could not be added.
     **/
     Logger::PrintCallback@ SetCallback( Logger::PrintCallback@ callback )
     {
@@ -483,6 +579,7 @@ final class ASLoggerManager
 
     /**
     *   Remove a method from the callback list in the global logger
+    *   @param callback The callback to remove from the global logger.
     **/
     bool RemoveCallback( Logger::PrintCallback@ callback )
     {
@@ -491,7 +588,9 @@ final class ASLoggerManager
 
     /**
     *   Set a method to call back every time the given logger is about to be print.
-    *   return: Handle to the given method or null
+    *   @param logger The logger that should invoke the callback.
+    *   @param callback The callback to register.
+    *   @return The registered callback handle, or null if it could not be added.
     **/
     Logger::PrintCallback@ SetCallback( Logger@ logger, Logger::PrintCallback@ callback )
     {
@@ -505,6 +604,8 @@ final class ASLoggerManager
 
     /**
     *   Remove a method from the callback list in the given logger
+    *   @param logger The logger from which to remove the callback.
+    *   @param callback The callback to remove.
     **/
     bool RemoveCallback( Logger@ logger, Logger::PrintCallback@ callback )
     {
@@ -519,7 +620,9 @@ final class ASLoggerManager
 
     /**
     *   Set a method to call back every time the given logger is about to be print.
-    *   return: Handle to the given method or null
+    *   @param logger A weak reference to the logger that should invoke the callback.
+    *   @param callback The callback to register.
+    *   @return The registered callback handle, or null if it could not be added.
     **/
     Logger::PrintCallback@ SetCallback( weakref<Logger>&in logger, Logger::PrintCallback@ callback )
     {
@@ -528,6 +631,8 @@ final class ASLoggerManager
 
     /**
     *   Remove a method from the callback list in the given logger
+    *   @param logger A weak reference to the logger from which to remove the callback.
+    *   @param callback The callback to remove.
     **/
     bool RemoveCallback( weakref<Logger>&in logger, Logger::PrintCallback@ callback )
     {
@@ -535,6 +640,10 @@ final class ASLoggerManager
     }
 
     // Set the log state for the given level
+    /**
+    *   @param level The log level whose state should be changed.
+    *   @param state The state to assign to the level.
+    */
     void SetLevel( Logger::ASLogLevel@ level, Logger::State state )
     {
         if( level is null )
@@ -547,6 +656,11 @@ final class ASLoggerManager
     }
 
     // Set the log state for the given level at the given logger
+    /**
+    *   @param logger The logger containing the level to update.
+    *   @param level The name of the log level to update.
+    *   @param state The state to assign to the level.
+    */
     void SetLevel( Logger@ logger, const string&in level, Logger::State state )
     {
         if( logger is null )
@@ -566,6 +680,11 @@ final class ASLoggerManager
     }
 
     // Set the log state for the given level at the given logger
+    /**
+    *   @param logger A weak reference to the logger containing the level to update.
+    *   @param level The name of the log level to update.
+    *   @param state The state to assign to the level.
+    */
     void SetLevel( weakref<Logger>&in logger, const string&in level, Logger::State state )
     {
         if( @logger.get() is null )
@@ -578,6 +697,11 @@ final class ASLoggerManager
     }
 
     // Set the log state for the given level at the given logger
+    /**
+    *   @param loggerName The name of the logger containing the level to update.
+    *   @param level The name of the log level to update.
+    *   @param state The state to assign to the level.
+    */
     void SetLevel( const string&in loggerName, const string&in level, Logger::State state )
     {
         weakref<Logger> logger = this.Get( loggerName );
@@ -592,6 +716,10 @@ final class ASLoggerManager
     }
 
     // Set the log state for all levels at the given logger
+    /**
+    *   @param logger The logger whose levels should all be updated.
+    *   @param state The state to assign to every level.
+    */
     void SetAllLevels( Logger@ logger, Logger::State state )
     {
         if( logger is null )
@@ -604,6 +732,10 @@ final class ASLoggerManager
     }
 
     // Set the log state for all levels at the given logger
+    /**
+    *   @param logger A weak reference to the logger whose levels should all be updated.
+    *   @param state The state to assign to every level.
+    */
     void SetAllLevels( weakref<Logger>&in logger, Logger::State state )
     {
         if( @logger.get() is null )
@@ -616,6 +748,10 @@ final class ASLoggerManager
     }
 
     // Set the log state for all levels at the given logger
+    /**
+    *   @param loggerName The name of the logger whose levels should all be updated.
+    *   @param state The state to assign to every level.
+    */
     void SetAllLevels( const string&in loggerName, Logger::State state )
     {
         weakref<Logger> logger = this.Get( loggerName );
@@ -630,6 +766,10 @@ final class ASLoggerManager
     }
 
     // Set log state for all levels at all loggers
+    /**
+    *   @param level The name of the log level to update in every logger.
+    *   @param state The state to assign to that level.
+    */
     void SetAllLoggersLevel( const string&in level, Logger::State state )
     {
         foreach( auto logger : this )
@@ -640,6 +780,7 @@ final class ASLoggerManager
 
 
     // Set log state for all levels at all loggers
+    /** @param state The state to assign to every log level in every logger. */
     void SetAllLoggersLevels( Logger::State state )
     {
         foreach( auto logger : this )
@@ -649,6 +790,7 @@ final class ASLoggerManager
     }
 
     // Find the logger with the given name and return it. null otherwise
+    /** @param loggerName The name of the logger to find. */
     const Logger@ Find( const string&in loggerName )
     {
         uint length = this.m_LoggerRefCount.length();
@@ -664,6 +806,7 @@ final class ASLoggerManager
     }
 
     // Find the logger with the given name and return a valid weakref if it exists
+    /** @param loggerName The name of the logger to find. */
     weakref<Logger> Get( const string&in loggerName )
     {
         weakref<Logger> logger;
@@ -685,6 +828,7 @@ final class ASLoggerManager
     }
 
     // Find the logger with the given name if it doesn't exists allocates it.
+    /** @param loggerName The name of the logger to retrieve or create. */
     weakref<Logger> Shared( const string&in loggerName )
     {
         weakref<Logger> logger;
@@ -708,6 +852,10 @@ final class ASLoggerManager
     }
 
     // Register a logger with the given name and outputs a weakref, return false if the given loggerName already exists.
+    /**
+    *   @param loggerName The name to assign to the new logger.
+    *   @param logger Receives a weak reference to the new logger when registration succeeds.
+    */
     bool Register( const string&in loggerName, weakref<Logger>&out logger )
     {
         if( Find( loggerName ) is null )
@@ -722,6 +870,7 @@ final class ASLoggerManager
     }
 
     // Remove the given logger from the list of logging
+    /** @param logger The logger instance to remove. */
     bool Shutdown( const Logger@ logger )
     {
         if( logger !is null )
@@ -738,12 +887,14 @@ final class ASLoggerManager
     }
 
     // Remove the given logger from the list of logging
+    /** @param logger A weak reference to the logger to remove. */
     bool Shutdown( weakref<Logger>&in logger )
     {
         return Shutdown( logger.get() );
     }
 
     // Remove the logger with the given name from the list of logging
+    /** @param loggerName The name of the logger to remove. */
     bool Shutdown( const string&in loggerName )
     {
         uint length = this.m_LoggerRefCount.length();
@@ -764,16 +915,19 @@ final class ASLoggerManager
         return 0;
     }
 
+    /** @param it The current iterator position. */
     bool opForEnd( int it ) 
     {
         return it > int( this.m_LoggerRefCount.length() );
     }
 
+    /** @param it The current iterator position. */
     int opForNext( int it ) 
     {
         return it + 1;
     }
 
+    /** @param it The iterator position whose logger is requested. */
     Logger@ opForValue( int it )
     {
         if( it >= int( this.m_LoggerRefCount.length() ) )
