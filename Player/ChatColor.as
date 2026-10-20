@@ -38,31 +38,51 @@ namespace ChatColor
     }
 
     // Say to a specific player. if target is null it will be the same player input
-    void Say( CBasePlayer@ player, const Color&in color, const string&in message, CBasePlayer@ target = null )
+    void Say( CBasePlayer@ player,
+        const Color&in color,
+        const string&in message,
+        CBasePlayer@ target = null,
+        bool insertPlayername = false
+    )
     {
         SetColor( player, color );
 
         if( target is null )
             @target = player;
 
+        string buffer = message;
+
+        if( insertPlayername )
+            buffer = string( player.pev.netname ) + ": " + message;
+
         NetworkMessage m( MSG_ONE, NetworkMessages::SayText, target.edict() );
             m.WriteByte( player.entindex() );
             m.WriteByte( 2 );
-            m.WriteString( message );
+            m.WriteString( buffer );
         m.End();
     }
 
     // Say to all, if targets is not null it will say only to these players.
-    void SayAll( CBasePlayer@ player, const Color&in color, const string&in message, array<CBasePlayer@>@ targets = null )
+    void SayAll( CBasePlayer@ player,
+        const Color&in color,
+        const string&in message,
+        array<CBasePlayer@>@ targets = null,
+        bool insertPlayername = false
+    )
     {
         SetColor( player, color );
+
+        string buffer = message;
+
+        if( insertPlayername )
+            buffer = string( player.pev.netname ) + ": " + message;
 
         if( targets is null )
         {
             NetworkMessage m( MSG_ALL, NetworkMessages::SayText );
                 m.WriteByte( player.entindex() );
                 m.WriteByte( 2 );
-                m.WriteString( message );
+                m.WriteString( buffer );
             m.End();
         }
         else
@@ -71,7 +91,7 @@ namespace ChatColor
 
             for( uint ui = 0; ui < length; ui++ )
             {
-                Say( player, color, message, targets[ui] );
+                Say( player, color, buffer, targets[ui] );
             }
         }
     }
