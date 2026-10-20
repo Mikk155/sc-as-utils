@@ -24,13 +24,10 @@ namespace ChatColor
 
     void SetColor( CBasePlayer@ player, const Color&in color )
     {
-        int classify = player.Classify();
-
-#if FALSE
-        if( LightBlue == Color::LightBlue && ( classify < Color::Blue || classify > Color::Green ) )
+        if( player is null )
             return;
-#endif
 
+        int classify = player.Classify();
         player.SetClassification( int( color ) );
         player.SendScoreInfo();
         player.SetClassification( classify );
@@ -45,6 +42,9 @@ namespace ChatColor
         bool insertPlayername = false
     )
     {
+        if( player is null )
+            return;
+
         SetColor( player, color );
 
         if( target is null )
@@ -70,6 +70,9 @@ namespace ChatColor
         bool insertPlayername = false
     )
     {
+        if( player is null )
+            return;
+
         SetColor( player, color );
 
         string buffer = message;
