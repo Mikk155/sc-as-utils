@@ -31,94 +31,13 @@ namespace meta_api
         // Set to true for displaying debug messages
         bool debug = false;
 
-        class Logger
+        string GetLogPrefix( int version )
         {
-            protected
-                string module;
-
-            string name;
-
-            private
-                void __SetModuleName__()
-                {
-                    this.module = g_Module.GetModuleName();
-                    if( this.module != "MapModule" )
-                        snprintf( this.module, "Plugin %1", this.module );
-                }
-
-            Logger()
-            {
-                __SetModuleName__();
-            }
-
-            /// @param Name The label included in this logger's output.
-            Logger( const string&in Name )
-            {
-                __SetModuleName__();
-                this.name = Name;
-            }
-
-            /**
-            *   @brief Print a formatted error message from the shared console buffer.
-            *   @param fmt Indicates that the message has already been formatted in the shared console buffer.
-            **/
-            void error( bool fmt ) const {
-                snprintf( cout, "[%1] %2 Error: %3\n", this.module, this.name, cout );
-                g_EngineFuncs.ServerPrint(cout); cout.Clear();
-            }
-
-            /**
-            *   @brief Print an error message.
-            *   @param message The error text to print.
-            **/
-            void error( const string&in message ) const {
-                snprintf( cout, "[%1] %2 Error: %3\n", this.module, this.name, message );
-                g_EngineFuncs.ServerPrint(cout); cout.Clear();
-            }
-
-            /**
-            *   @brief Print a formatted informational message from the shared console buffer.
-            *   @param fmt Indicates that the message has already been formatted in the shared console buffer.
-            **/
-            void info( bool fmt ) const {
-                snprintf( cout, "[%1] %2 Info: %3\n", this.module, this.name, cout );
-                g_EngineFuncs.ServerPrint(cout); cout.Clear();
-            }
-
-            /**
-            *   @brief Print an informational message.
-            *   @param message The informational text to print.
-            **/
-            void info( const string&in message ) const {
-                snprintf( cout, "[%1] %2 Info: %3\n", this.module, this.name, message );
-                g_EngineFuncs.ServerPrint(cout); cout.Clear();
-            }
-
-            /**
-            *   @brief Print a formatted debug message from the shared console buffer when debugging is enabled.
-            *   @param fmt Indicates that the message has already been formatted in the shared console buffer.
-            **/
-            void debug( bool fmt ) const {
-                if( meta_api::json::debug ) {
-                    snprintf( cout, "[%1] %2 Debug: %3\n", this.module, this.name, cout );
-                   g_EngineFuncs.ServerPrint(cout); cout.Clear();
-                }
-            }
-
-            /**
-            *   @brief Print a debug message when debugging is enabled.
-            *   @param message The debug text to print.
-            **/
-            void debug( const string&in message ) const {
-                if( meta_api::json::debug ) {
-                    snprintf( cout, "[%1] %2 Debug: %3\n", this.module, this.name, message );
-                    g_EngineFuncs.ServerPrint(cout); cout.Clear();
-                }
-            }
+            string moduleName = g_Module.GetModuleName();
+            if( moduleName != "MapModule" )
+                moduleName = "Plugin " + moduleName;
+            return "[JSON v" + version + "] " + moduleName + ": ";
         }
-
-        // Global json logger
-        Logger g_Logger( "JSON" );
 
         /**
         *   @brief return whatever str is a valid file name and formats the output filename
@@ -258,9 +177,6 @@ namespace meta_api
                 // Parser version.
                 const meta_api::json::Version GetVersion() const { return Version::Undefined; }
 
-                Logger m_Logger( "JSON V" + int( this.GetVersion() ) );
-
-                const meta_api::json::Logger@ get_Logger() const { return g_Logger; }
             }
 
             enum Indentation
@@ -356,7 +272,7 @@ namespace meta_api
                     {
                         if( depth == 0 )
                         {
-                            this.Logger.info( "Only Style::KandR is supported when Indentation::AllTogether. Enforcing Style::KandR..." );
+                            g_Game.AlertMessage( at_notice, GetLogPrefix( int( this.GetVersion() ) ) + "Only Style::KandR is supported when Indentation::AllTogether. Enforcing Style::KandR...\n" );
                         }
 
                         this.m_Style = meta_api::json::parser::Style::KandR;
@@ -406,7 +322,7 @@ namespace meta_api
                         }
                         default:
                         {
-                            this.Logger.error( "Can not instantiate a Serializer with other than Array or Object!" );
+                            g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "Can not instantiate a Serializer with other than Array or Object!\n" );
                             this.error++;
                             break;
                         }
@@ -493,13 +409,13 @@ namespace meta_api
                             }
                         }
 
-                        this.Logger.error( snprintf( cout, "Couldn't serialize content to file \"%1\"", this.m_Filename ) );
+                        g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "Couldn't serialize content to file \"%1\"\n", this.m_Filename );
                         return String::EMPTY_STRING;
                     }
 
                     if( !this.Ok )
                     {
-                        this.Logger.error( snprintf( cout, "Couldn't serialize content for \"%1\"", g_Module.GetModuleName() ) );
+                        g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "Couldn't serialize content for \"%1\"\n", g_Module.GetModuleName() );
                         return String::EMPTY_STRING;
                     }
 
@@ -519,7 +435,7 @@ namespace meta_api
                 {
                     if( value.IsEmpty() && type != meta_api::json::Type::String )
                     {
-                        this.Logger.error( snprintf( cout, "Skiping unable to serialize empty value other than string. value of type %1 at key %2", type, key ) );
+                        g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "Skiping unable to serialize empty value other than string. value of type %1 at key %2\n", type, key );
                         return;
                     }
 
@@ -594,7 +510,7 @@ namespace meta_api
                         case meta_api::json::Type::Handle:
                         default:
                         {
-                            this.Logger.error( snprintf( cout, "Skiping unable to serialize value of type %1 at key %2 with value of %3", type, key, value ) );
+                            g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "Skiping unable to serialize value of type %1 at key %2 with value of %3\n", type, key, value );
                             break;
                         }
                     }
@@ -738,7 +654,7 @@ namespace meta_api
                             {
                                 if( this.m_Buffer.Find( '*/', this.CurrentPosition, String::CompareType::CaseSensitive ) == String::INVALID_INDEX )
                                 {
-                                    this.Logger.error( snprintf( cout, "Unclosed multi line commentary at %1%2", this.GetCurrentLine(), this.GetLastRead() ) );
+                                    g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "Unclosed multi line commentary at %1%2\n", this.GetCurrentLine(), this.GetLastRead() );
                                     this.error++;
                                     return false;
                                 }
@@ -812,14 +728,14 @@ namespace meta_api
                 {
                     if( !this.IsFile && this.m_Buffer.IsEmpty() )
                     {
-                        this.Logger.error( snprintf( cout, "Deserializer::Initialize Empty string provided or Deserializer::SetSerialized was never called!" ) );
+                        g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "Deserializer::Initialize Empty string provided or Deserializer::SetSerialized was never called!\n" );
                         this.m_ErrorCode = meta_api::json::Error::EMPTY_INPUT;
                         return meta_api::json::Type::Undefined;
                     }
 
                     if( this.IsFile )
                     {
-                        this.Logger.info( snprintf( cout, "Reading file \"%1\"", this.m_FileName ) );
+                        g_Game.AlertMessage( at_notice, GetLogPrefix( int( this.GetVersion() ) ) + "Reading file \"%1\"\n", this.m_FileName );
 
                         bool shouldVanillaLoad = true;
 
@@ -841,7 +757,7 @@ namespace meta_api
 
                             if( fstream is null || !fstream.IsOpen() )
                             {
-                                this.Logger.error( snprintf( cout, "could not open file \"%1\"", this.m_FileName ) );
+                                g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "could not open file \"%1\"\n", this.m_FileName );
                                 this.m_ErrorCode = meta_api::json::Error::FILE_NOT_FOUND;
                                 return meta_api::json::Type::Undefined;
                             }
@@ -867,7 +783,7 @@ namespace meta_api
                         if( meta_api::json::Type::Undefined == metaType )
                         {
                             this.error++;
-                            this.Logger.error( errMessage );
+                            g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "%1\n", errMessage );
                             this.m_ErrorCode = meta_api::json::Error::SYNTAX_ERROR;
                             return metaType;
                         }
@@ -888,7 +804,7 @@ namespace meta_api
                     /// Seek to the first json object/array return Type::Undefined if "{" or "[" is not found
                     if( this.totalSize <= 1 ) // 2 is the minimun string size to define empty object/array
                     {
-                        this.Logger.error( "The provided string is empty!" );
+                        g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "The provided string is empty!\n" );
                         this.m_ErrorCode = meta_api::json::Error::EMPTY_INPUT;
                         return meta_api::json::Type::Undefined;
                     }
@@ -935,7 +851,7 @@ namespace meta_api
                     bool ErrorUnexpected( const string&in expected, const string&in unexpected, const string&in comment = String::EMPTY_STRING )
                     {
                         bool has_comment = comment.IsEmpty();
-                        this.Logger.error( snprintf( cout, "Unexpected token \"%1\" at %2 expected \"%3\"%4%5%6%7",
+                        g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "Unexpected token \"%1\" at %2 expected \"%3\"%4%5%6%7\n",
                                 meta_api::json::parser::EscapeSequences( unexpected ),
                                 this.GetCurrentLine(),
                                 expected,
@@ -943,8 +859,7 @@ namespace meta_api
                                 comment,
                                 ( has_comment ? "" : "." ),
                                 this.GetLastRead()
-                            )
-                        );
+                            );
                         this.error++;
                         return false;
                     }
@@ -962,7 +877,7 @@ namespace meta_api
                     if( had_comma && pairs > 0 )
                     {
                         this.error++;
-                        this.Logger.error( snprintf( cout, "Unexpected \",\" at the last key-value pair at %1%2", this.GetCurrentLine(), this.GetLastRead() ) );
+                        g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "Unexpected \",\" at the last key-value pair at %1%2\n", this.GetCurrentLine(), this.GetLastRead() );
                         return;
                     }
 
@@ -978,7 +893,7 @@ namespace meta_api
 
                                 if( c != '\r' && c != ' ' && c != '\t' && c != '\n' )
                                 {
-                                    this.Logger.error( snprintf( cout, "Unexpected token \"%1\" at %2 expected end of string%3", string(c), this.GetCurrentLine(), this.GetLastRead() ) );
+                                    g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "Unexpected token \"%1\" at %2 expected end of string%3\n", string(c), this.GetCurrentLine(), this.GetLastRead() );
                                     this.error++;
                                     return;
                                 }
@@ -994,7 +909,7 @@ namespace meta_api
 
                     if( debug )
                     {
-                        this.Logger.debug( snprintf( cout, "%1: %2 %3", string( currentData[ "path" ] ), meta_api::json::Type::ToString(ObjectType), ( ObjectType == meta_api::json::Type::Array ? "]" : "}" ) ) );
+                        g_Game.AlertMessage( at_console, GetLogPrefix( int( this.GetVersion() ) ) + "%1: %2 %3\n", string( currentData[ "path" ] ), meta_api::json::Type::ToString(ObjectType), ( ObjectType == meta_api::json::Type::Array ? "]" : "}" ) );
                     }
                 }
 
@@ -1024,7 +939,7 @@ namespace meta_api
 
                     if( !is_array && !is_object )
                     {
-                        this.Logger.error( snprintf( cout, "can not Advance with type \"%1\". only supported Object or Array", ObjectType ) );
+                        g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "can not Advance with type \"%1\". only supported Object or Array\n", ObjectType );
                         this.error++;
                         return false;
                     }
@@ -1037,7 +952,7 @@ namespace meta_api
                         if( !data.exists( "path" ) )
                         {
                             data[ "path" ] = "\"<root>\"";
-                            this.Logger.debug( snprintf( cout, "%1: %2 %3", string( data[ "path" ] ), meta_api::json::Type::ToString(ObjectType), ( ObjectType == meta_api::json::Type::Array ? "[" : "{" ) ) );
+                            g_Game.AlertMessage( at_console, GetLogPrefix( int( this.GetVersion() ) ) + "%1: %2 %3\n", string( data[ "path" ] ), meta_api::json::Type::ToString(ObjectType), ( ObjectType == meta_api::json::Type::Array ? "[" : "{" ) );
                         }
                     }
 
@@ -1110,7 +1025,7 @@ namespace meta_api
                                 else if( next == 'f' ) { e = "\\f"; }
                                 else
                                 {
-                                    this.Logger.error( snprintf( cout, "Non-escaped sequence \"%1\" at %2%3", string(next), this.GetCurrentLine(), this.GetLastRead() ) );
+                                    g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "Non-escaped sequence \"%1\" at %2%3\n", string(next), this.GetCurrentLine(), this.GetLastRead() );
                                     this.error++;
                                     return false;
                                 }
@@ -1166,7 +1081,7 @@ namespace meta_api
                         {
                             if( pair.key.IsEmpty() )
                             {
-                                this.Logger.error( snprintf( cout, "Empty key name given at %1%2", this.GetCurrentLine(), this.GetLastRead() ) );
+                                g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "Empty key name given at %1%2\n", this.GetCurrentLine(), this.GetLastRead() );
                                 this.error++;
                                 return false;
                             }
@@ -1213,7 +1128,7 @@ namespace meta_api
 
                                     dictionary@ childData = this.m_Data[this.m_DataCurrent-1];
                                     childData[ "path" ] = path;
-                                    this.Logger.debug( snprintf( cout, "%1: %2 %3", path, meta_api::json::Type::ToString(pair.type), ( pair.type == meta_api::json::Type::Array ? "[" : "{" ) ) );
+                                    g_Game.AlertMessage( at_console, GetLogPrefix( int( this.GetVersion() ) ) + "%1: %2 %3\n", path, meta_api::json::Type::ToString(pair.type), ( pair.type == meta_api::json::Type::Array ? "[" : "{" ) );
                                 }
                                 return true;
                             }
@@ -1244,7 +1159,7 @@ namespace meta_api
                                     if( had_comma && bool( data[ "had_comma" ] ) )
                                         return ErrorUnexpected( ( is_array ? "value" : "\"" ), c, "Double comma after value" );
 
-                                    this.Logger.error( snprintf( cout, "Empty non-string value given at %1%2", this.GetCurrentLine(), this.GetLastRead() ) );
+                                    g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "Empty non-string value given at %1%2\n", this.GetCurrentLine(), this.GetLastRead() );
                                     this.error++;
                                     return false;
                                 }
@@ -1274,7 +1189,7 @@ namespace meta_api
                                 }
                                 else
                                 {
-                                    this.Logger.error( snprintf( cout, "Invalid non-string value \"%1\" at %2%3", EscapeSequences(pair.value_string), this.GetCurrentLine(), this.GetLastRead() ) );
+                                    g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "Invalid non-string value \"%1\" at %2%3\n", EscapeSequences(pair.value_string), this.GetCurrentLine(), this.GetLastRead() );
                                     this.error++;
                                     return false;
                                 }
@@ -1282,7 +1197,7 @@ namespace meta_api
                                 if( debug )
                                 {
                                     string quote = ( pair.type == meta_api::json::Type::String ? "\"" : "" );
-                                    this.Logger.debug( snprintf( cout, "%1->\"%2\": %3%4%3 (%5)", string( data[ "path" ] ), pair.key, quote, pair.value_string, meta_api::json::Type::ToString(pair.type) ) );
+                                    g_Game.AlertMessage( at_console, GetLogPrefix( int( this.GetVersion() ) ) + "%1->\"%2\": %3%4%3 (%5)\n", string( data[ "path" ] ), pair.key, quote, pair.value_string, meta_api::json::Type::ToString(pair.type) );
                                 }
 
                                 if( stop )
@@ -1293,7 +1208,7 @@ namespace meta_api
                                 else if( !had_comma && pairs > 0 )
                                 {
                                     this.error++;
-                                    this.Logger.error( snprintf( cout, "Unexpected end of value without comma at %1%2", this.GetCurrentLine(), this.GetLastRead() ) );
+                                    g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "Unexpected end of value without comma at %1%2\n", this.GetCurrentLine(), this.GetLastRead() );
                                     return false;
                                 }
                                 */
@@ -1313,7 +1228,7 @@ namespace meta_api
                                 }
                                 else
                                 {
-                                    this.Logger.error( snprintf( cout, "Duplicated key name \"%1\" at %2%3", pair.key, this.GetCurrentLine(), this.GetLastRead() ) );
+                                    g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "Duplicated key name \"%1\" at %2%3\n", pair.key, this.GetCurrentLine(), this.GetLastRead() );
                                     this.error++;
                                     return false;
                                 }
@@ -1350,14 +1265,14 @@ namespace meta_api
                         }
 
                         this.error++;
-                        this.Logger.error( snprintf( cout, "Unexpected \"%1\" at %2%3", c, this.GetCurrentLine(), this.GetLastRead() ) );
+                        g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "Unexpected \"%1\" at %2%3\n", c, this.GetCurrentLine(), this.GetLastRead() );
                         return false;
                     }
 
                     if( in_string )
                     {
                         this.error++;
-                        this.Logger.error( "Reached end of parser with an unterminated string!" );
+                        g_Game.AlertMessage( at_error, GetLogPrefix( int( this.GetVersion() ) ) + "Reached end of parser with an unterminated string!\n" );
                     }
 
                     return false;

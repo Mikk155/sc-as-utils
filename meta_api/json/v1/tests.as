@@ -22,13 +22,6 @@ namespace meta_api
                     return Version::V1;
                 }
 
-                private Logger m_Logger( "JSON V1" );
-
-                const Logger@ get_Logger() const
-                {
-                    return this.m_Logger;
-                }
-
                 /// @param serialized JSON text or a JSON filename to pass to the generic deserializer.
                 bool DeserializeGeneric( const string&in serialized ) override
                 {

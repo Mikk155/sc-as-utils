@@ -23,11 +23,11 @@ final class Expect
         if( condition != expected )
         {
             Failed = true;
-            g_Logger.error( snprintf( cout, "FAIL: %1", title ) );
+            g_Game.AlertMessage( at_error, GetLogPrefix( int( tests::__TestingVersion__ ) ) + "FAIL: %1\n", title );
         }
         else
         {
-            g_Logger.info( snprintf( cout, "PASS: %1", title ) );
+            g_Game.AlertMessage( at_notice, GetLogPrefix( int( tests::__TestingVersion__ ) ) + "PASS: %1\n", title );
         }
 
         tests::__Results__.insertLast(this);
@@ -39,7 +39,6 @@ interface ITest
 {
     /// Json version
     const Version GetVersion();
-    const Logger@ get_Logger() const;
     /**
         If any data of the following object is missing from your deserialization then assume the test failed and return false.
 {
@@ -79,6 +78,7 @@ uint __AllTestsTotal__ = 0;
 uint __AllTestsPassed__ = 0;
 uint __AllTestsFailed__ = 0;
 uint __AllTests__ = 0;
+Version __TestingVersion__ = Version::Latest;
 
 array<ITest@> __Tests__(0);
 
@@ -91,7 +91,7 @@ void Register( ITest@ test )
 {
 if( test is null )
 {
-    g_Logger.error( "Null test passed on meta_api::json::tests::Register( ITest@ )" );
+    g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::Latest ) ) + "Null test passed on meta_api::json::tests::Register( ITest@ )\n" );
     return;
 }
 __Tests__.insertLast( test );
@@ -108,7 +108,8 @@ void __RunTests__( ITest@ test, bool metamod )
 {
 __AllTests__++;
 __Results__.resize(0);
-test.Logger.info( snprintf( meta_api::json::cout, "===== Running json tests for %1 =====", ( metamod ? "METAMOD" : "VANILLA" ) ) );
+__TestingVersion__ = test.GetVersion();
+g_Game.AlertMessage( at_notice, GetLogPrefix( int( __TestingVersion__ ) ) + "===== Running json tests for %1 =====\n", ( metamod ? "METAMOD" : "VANILLA" ) );
 
 Expect( "Deserialization and types", true, test.DeserializeAllTypes( "{\"null\": null,\"integer\": 1,\"float\": 1.5,\"bool\": true,\"string\": \"string\",\"object\":{},\"array\":[null,1,1.5,true,false,\"string\",{},[]]}" ) );
 Expect( "Single line comments", true, test.DeserializeGeneric( "// Comment before object\n{// Comment after token in object\n\"first\": 1, // Comment after comma\n\"second\": [\n1, // Comment inside array after value with comma\n2 // Comment inside array after value with no comma\n],\n\"third\": 2 // Comment after value with no comma\n}// Comment at end of object" ) );
@@ -169,19 +170,19 @@ for( uint ui = 0; ui < length; ui++ )
 }
 if( fails.length() == 0 )
 {
-    test.Logger.info( snprintf( cout, "===== All %1 tests passed =====", pass.length() ) );
+    g_Game.AlertMessage( at_notice, GetLogPrefix( int( __TestingVersion__ ) ) + "===== All %1 tests passed =====\n", pass.length() );
 }
 else if( pass.length() == 0 )
 {
-    test.Logger.error( snprintf( cout, "===== All %1 tests failed =====", fails.length() ) );
+    g_Game.AlertMessage( at_error, GetLogPrefix( int( __TestingVersion__ ) ) + "===== All %1 tests failed =====\n", fails.length() );
 }
 else
 {
-    test.Logger.info( snprintf( meta_api::json::cout, "===== Passed: %1 =====", pass.length() ) );
-    test.Logger.error( snprintf( meta_api::json::cout, "===== Failed: %1 =====", fails.length() ) );
+    g_Game.AlertMessage( at_notice, GetLogPrefix( int( __TestingVersion__ ) ) + "===== Passed: %1 =====\n", pass.length() );
+    g_Game.AlertMessage( at_error, GetLogPrefix( int( __TestingVersion__ ) ) + "===== Failed: %1 =====\n", fails.length() );
 }
 
-test.Logger.info( "===== All done! =====\n==================" );
+g_Game.AlertMessage( at_notice, GetLogPrefix( int( __TestingVersion__ ) ) + "===== All done! =====\n==================\n" );
 __Results__.resize(0);
 }
 
@@ -192,7 +193,7 @@ __Results__.resize(0);
 void Start( ITest@ test )
 {
 if( test is null ) {
-    g_Logger.error( "Null test passed on meta_api::json::tests::Start( ITest@ )" );
+    g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::Latest ) ) + "Null test passed on meta_api::json::tests::Start( ITest@ )\n" );
     return;
 }
 /*
@@ -202,7 +203,7 @@ __RunTests__( test, true );
 __META_INSTALLED__ = true;
 #endif
 if( !__META_INSTALLED__ ) {
-    g_Logger.info( "===== Skiping json tests for METAMOD as is not installed =====", test.GetVersion() );
+    g_Game.AlertMessage( at_notice, GetLogPrefix( int( test.GetVersion() ) ) + "===== Skiping json tests for METAMOD as is not installed =====\n" );
 }
 */
 // If metamod is installed disable the support momentarly to test vanilla behaviour
@@ -226,21 +227,18 @@ for( uint ui = 0; ui < __Tests__.length(); ui++ )
         Start( ptr );
     }
 }
-string buffer;
-snprintf(buffer, """
+g_Game.AlertMessage( at_notice, GetLogPrefix( int( Version::Latest ) ) + """
 ========== TEST SUMMARY ==========
 Runs: %1
 Pass: %2 (%3%%)
 Fail: %4 (%5%%)
 All : %6
-=================================
-""",
+=================================\n""",
 __AllTests__,
 __AllTestsPassed__, ( __AllTestsTotal__ > 0 ? int( 100.0f * __AllTestsPassed__ / __AllTestsTotal__ ) : 0 ),
 __AllTestsFailed__, ( __AllTestsTotal__ > 0 ? int( 100.0f * __AllTestsFailed__ / __AllTestsTotal__ ) : 0 ),
 __AllTestsTotal__
 );
-g_EngineFuncs.ServerPrint(buffer);
 } // void StartAll
 
 /**
@@ -259,7 +257,7 @@ for( uint ui = 0; ui < __Tests__.length(); ui++ )
         return;
     }
 }
-g_Logger.error( snprintf( cout, "Couldn't find a registered test interface for version %1", version ) );
+g_Game.AlertMessage( at_error, GetLogPrefix( int( version ) ) + "Couldn't find a registered test interface for version %1\n", version );
 } // void Start
 } // namespace tests
 } // namespace json
