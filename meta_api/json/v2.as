@@ -213,16 +213,59 @@ namespace meta_api
                 /// ======================================
                 /// opConv
                 /// ======================================
-                float opConv() {
+                float opConv()
+                {
+                    switch( this.Type )
+                    {
+                        case meta_api::json::Type::String:
+                            return atof( string( this.Value ) );
+                        case meta_api::json::Type::Integer:
+                            return float( int( this.Value ) );
+                        case meta_api::json::Type::Boolean:
+                            return ( bool( this.Value ) ? 1 : 0 );
+                    }
                     return float( this.Value );
                 }
-                int opConv() {
+                int opConv()
+                {
+                    switch( this.Type )
+                    {
+                        case meta_api::json::Type::String:
+                            return atoi( string( this.Value ) );
+                        case meta_api::json::Type::Float:
+                            return int( float( this.Value ) );
+                        case meta_api::json::Type::Boolean:
+                            return ( bool( this.Value ) ? 1 : 0 );
+                    }
                     return int( this.Value );
                 }
-                bool opConv() {
+                bool opConv()
+                {
+                    switch( this.Type )
+                    {
+                        case meta_api::json::Type::String:
+                        {
+                            string val = string( this.Value );
+                            return ( atoi(val) != 1 || val == "true" );
+                        }
+                        case meta_api::json::Type::Float:
+                            return ( int( float( this.Value ) ) != 0 );
+                        case meta_api::json::Type::Integer:
+                            return ( int( this.Value ) != 0 );
+                    }
                     return bool( this.Value );
                 }
-                string opConv() {
+                string opConv()
+                {
+                    switch( this.Type )
+                    {
+                        case meta_api::json::Type::Float:
+                            return string( float( this.Value ) );
+                        case meta_api::json::Type::Integer:
+                            return string( int( this.Value ) );
+                        case meta_api::json::Type::Boolean:
+                            return ( bool( this.Value ) ? "true" : "false" );
+                    }
                     return string( this.Value );
                 }
 
@@ -557,13 +600,14 @@ namespace meta_api
                 /// @param store Store the fallback value under the key when it is absent.
                 meta_api::json::v2::json@ ValueOrDefault( const string&in keyName, meta_api::json::v2::json@ value = null, bool store = false )
                 {
-                    if( !this.Get( keyName, value ) )
-                    {
-                        if( value is null )
-                            @value = meta_api::json::v2::json();
-                        if( store )
-                            this.Set( keyName, value );
-                    }
+                    meta_api::json::v2::json@ valGet;
+                    if( this.Get( keyName, valGet ) )
+                        @value = valGet;
+
+                    if( value is null )
+                        @value = meta_api::json::v2::json();
+                    if( store )
+                        this.Set( keyName, value );
                     return value;
                 }
                 /// Get the stored value at the given key name or a default value if not exists.
@@ -730,7 +774,7 @@ namespace meta_api
                 /// @param key The key of the value to remove.
                 meta_api::json::v2::json@ Remove( const string&in key )
                 {
-                    if( !this.is_object() )
+                    if( !this.is_structured() )
                     {
                         Logger.error( snprintf( cout, "Can not Remove value at key %1 from a json that is not an object! type: %2", key, Type::ToString( this.Type ) ) );
                     }
@@ -898,7 +942,12 @@ namespace meta_api
                         }
                         case meta_api::json::Type::Float:
                         {
-                            Serializer.KeyValue( key, float( value.Value ), value.Type );
+                            string fValue = string( float( value.Value ) );
+
+                            if( fValue.Find( "." ) == String::INVALID_INDEX )
+                                fValue.opAddAssign( ".0" );
+
+                            Serializer.KeyValue( key, fValue, value.Type );
                             break;
                         }
                         case meta_api::json::Type::Integer:
