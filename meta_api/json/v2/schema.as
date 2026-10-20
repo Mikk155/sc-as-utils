@@ -36,7 +36,7 @@ namespace meta_api
                     *   @param schema The schema object containing the expected type.
                     *   @param name The path or label used to identify the value in validation errors.
                     **/
-                    bool is_type( json@ obj, json@ schema, const string&in name )
+                    bool is_type( json@ obj, json@ schema, const string&in name, json@ defaults )
                     {
                         if( !schema.Contains( "type" ) )
                         {
@@ -100,6 +100,8 @@ namespace meta_api
 
                             if( schema.Contains( "default" ) )
                                 obj.opAssign( schema[ "default" ] );
+                            else if( defaults !is null )
+                                obj.opAssign( defaults.Copy() );
                         }
 
                         return false;
@@ -111,9 +113,12 @@ namespace meta_api
                     *   @param schema The schema object describing the expected structure and constraints.
                     *   @param name The path or label used to identify the value in validation errors.
                     **/
-                    private bool Validate( json@ obj, json@ schema, const string&in name )
+                    private bool Validate( json@ obj, json@ schema, const string&in name, json@ defaults )
                     {
-                        if( !this.is_type( obj, schema, name ) && this.strict )
+                        if( defaults !is null && obj.Length() <= 0 )
+                            obj.opAssign( defaults.Copy() );
+
+                        if( !this.is_type( obj, schema, name, defaults ) && this.strict )
                             return false;
 
                         switch( obj.Type )
@@ -122,8 +127,6 @@ namespace meta_api
                             case Type::Array:
                             {
                                 json@ schemaProperties = schema.ValueOrDefault( ( obj.is_object() ? "properties" : "items" ) ).Copy();
-
-                                array<string> additionalProperties(0);
 
                                 // Array specific validations
                                 if( obj.is_array() )
@@ -148,31 +151,44 @@ namespace meta_api
                                 }
                                 else
                                 {
-                                    bool hasAdditionalProperties = schema.Contains( "additionalProperties" );
+                                    json@ additionalPropertiesSchema = schema[ "additionalProperties" ];
+                                    bool hasAdditionalProperties = additionalPropertiesSchema !is null;
+                                    bool isArrayAdditionalProperties = hasAdditionalProperties && string( additionalPropertiesSchema[ "type" ] ) == "array";
+                                    bool allowUnevaluatedProperties = schema.ValueOrDefault( "unevaluatedProperties", true );
 
-                                    // Whatever non-defined properties in schema are allowed in obj
-                                    if( schema.ValueOrDefault( "unevaluatedProperties", true ) == false )
+                                    const array<string>@ keys = obj.Keys;
+                                    uint length = obj.Length();
+
+                                    for( uint ui = 0; ui < length; ui++ )
                                     {
-                                        uint length = obj.Length();
+                                        string key = keys[ui];
 
-                                        for( uint ui = 0; ui < length; ui++ )
+                                        if( schemaProperties.Contains( key ) )
+                                            continue;
+
+                                        if( isArrayAdditionalProperties )
                                         {
-                                            json@ pair = obj[ui];
-
-                                            if( !schemaProperties.Contains( pair.Name ) )
-                                            {
-                                                if( hasAdditionalProperties )
-                                                {
-                                                    additionalProperties.insertLast( pair.Name );
-                                                    continue;
-                                                }
-
-                                                this.errors++;
-                                                this.m_Logger.error( snprintf( cout, "%1 got unevaluated property \"%2\" which is not allowed!", name, pair.Name ) );
-                                                if( this.strict )
-                                                    return false;
-                                            }
+                                            schemaProperties.Set( key, additionalPropertiesSchema.Copy() );
+                                            continue;
                                         }
+
+                                        if( hasAdditionalProperties && additionalPropertiesSchema.Contains( key ) )
+                                        {
+                                            schemaProperties.Set( key, additionalPropertiesSchema[ key ].Copy() );
+                                            continue;
+                                        }
+
+                                        if( allowUnevaluatedProperties )
+                                            continue;
+
+                                        this.errors++;
+                                        this.m_Logger.error( snprintf( cout, "%1 got unevaluated property \"%2\" which is not allowed!", name, key ) );
+                                        if( this.strict )
+                                            return false;
+
+                                        --length;
+                                        obj.Remove( ui );
+                                        --ui;
                                     }
 
                                     // Whatever required properties in schema are defined in obj
@@ -197,13 +213,6 @@ namespace meta_api
                                     }
                                 }
 
-                                json@ additionalPropertiesSchema = schema[ "additionalProperties" ];
-                                uint additionalPropertiesLength = additionalProperties.length();
-                                for( uint ui = 0; ui < additionalPropertiesLength; ui++ )
-                                {
-                                    schemaProperties.Set( additionalProperties[ui], additionalPropertiesSchema.Copy() );
-                                }
-
                                 // validate all properties
                                 uint length = schemaProperties.Length();
 
@@ -212,6 +221,7 @@ namespace meta_api
                                     json@ pair = schemaProperties[ui];
 
                                     json@ childObj = obj[ pair.Name ];
+                                    json@ defaultChild = ( defaults !is null ? defaults[ pair.Name ] : null );
 
                                     if( childObj is null )
                                     {
@@ -221,6 +231,11 @@ namespace meta_api
                                             {
                                                 // -TODO DeepCopy
                                                 @childObj = pair[ "default" ].Copy();
+                                                obj.Set( pair.Name, childObj );
+                                            }
+                                            else if( defaultChild !is null )
+                                            {
+                                                @childObj = defaultChild.Copy();
                                                 obj.Set( pair.Name, childObj );
                                             }
                                         }
@@ -233,7 +248,7 @@ namespace meta_api
                                     snprintf( childName, "%1->%2", name, pair.Name );
                                     this.m_Logger.debug( snprintf( cout, "Validating %1", childName ) );
 
-                                    bool result = this.Validate( childObj, pair, childName );
+                                    bool result = this.Validate( childObj, pair, childName, defaultChild );
 
                                     if( this.strict && result == false )
                                         return false;
@@ -276,9 +291,9 @@ namespace meta_api
                     *   @param obj The JSON value to validate.
                     *   @param schema The schema object describing the expected structure and constraints.
                     **/
-                    bool Validate( json@ obj, json@ schema )
+                    bool Validate( json@ obj, json@ schema, json@ defaults )
                     {
-                        return this.Validate( obj, schema, "<root>" );
+                        return this.Validate( obj, schema, "<root>", defaults );
                     }
                 }
 
@@ -288,10 +303,11 @@ namespace meta_api
                 /// @param obj The JSON value to validate; non-strict validation may modify it.
                 /// @param schema The schema object describing the expected structure and constraints.
                 /// @param strict Set to true to stop on the first invalid value; false continues and may remove invalid values or apply defaults.
-                bool Validate( json@ obj, json@ schema, bool strict = false )
+                /// @param defaults Optional external fallback values for missing or invalid properties.
+                bool Validate( json@ obj, json@ schema, bool strict = false, json@ defaults = null )
                 {
                     Validator validator( strict );
-                    return validator.Validate( obj, schema );
+                    return validator.Validate( obj, schema, defaults );
                 }
 
                 /// Validate obj against schema
@@ -300,10 +316,11 @@ namespace meta_api
                 /// @param obj The JSON value to validate; non-strict validation may modify it.
                 /// @param schema JSON text describing the schema.
                 /// @param strict Set to true to stop on the first invalid value; false continues and may remove invalid values or apply defaults.
-                bool Validate( json@ obj, const string&in schema, bool strict = false )
+                /// @param defaults Optional external fallback values for missing or invalid properties.
+                bool Validate( json@ obj, const string&in schema, bool strict = false, json@ defaults = null )
                 {
                     json@ schemaObject;
-                    return Deserialize( schema, schemaObject ) && Validate( obj, schemaObject, strict );
+                    return Deserialize( schema, schemaObject ) && Validate( obj, schemaObject, strict, defaults );
                 }
             } // schema
         } // v2
