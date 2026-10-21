@@ -1,3 +1,27 @@
+/**
+*   MIT License
+*
+*   Copyright (c) 2025 Mikk155
+*
+*   Permission is hereby granted, free of charge, to any person obtaining a copy
+*   of this software and associated documentation files (the "Software"), to deal
+*   in the Software without restriction, including without limitation the rights
+*   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*   copies of the Software, and to permit persons to whom the Software is
+*   furnished to do so, subject to the following conditions:
+*
+*   The above copyright notice and this permission notice shall be included in all
+*   copies or substantial portions of the Software.
+*
+*   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+*   SOFTWARE.
+**/
+
 #include "../v2"
 
 namespace meta_api
@@ -39,7 +63,7 @@ namespace meta_api
                         if( !schema.Contains( "type" ) )
                         {
                             this.errors++;
-                            g_Game.AlertMessage( at_error, meta_api::json::GetLogPrefix( int( Version::V2 ) ) + "%1 expected \"type\" at schema but is undefined!\n", name );
+                            g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::V2 ) ) + "%1 expected \"type\" at schema but is undefined!\n", name );
                             return false;
                         }
 
@@ -50,7 +74,7 @@ namespace meta_api
                         if( expectedTypeString.IsEmpty() )
                         {
                             this.errors++;
-                            g_Game.AlertMessage( at_error, meta_api::json::GetLogPrefix( int( Version::V2 ) ) + "Unexpected empty type at schema!\n" );
+                            g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::V2 ) ) + "Unexpected empty type at schema!\n" );
                             return false;
                         }
 
@@ -79,7 +103,7 @@ namespace meta_api
                             break;
                             default:
                                 this.errors++;
-                                g_Game.AlertMessage( at_error, meta_api::json::GetLogPrefix( int( Version::V2 ) ) + "schema unknown \"type\" %1\n", expectedTypeString );
+                                g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::V2 ) ) + "schema unknown \"type\" %1\n", expectedTypeString );
                                 if( true )
                                     return false;
                             break;
@@ -89,7 +113,7 @@ namespace meta_api
                             return true;
 
                         this.errors++;
-                        g_Game.AlertMessage( at_error, meta_api::json::GetLogPrefix( int( Version::V2 ) ) + "%1 Expected %2 got %3\n", name, expectedTypeString, Type::ToString(obj.Type) );
+                        g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::V2 ) ) + "%1 Expected %2 got %3\n", name, expectedTypeString, Type::ToString(obj.Type) );
 
                         if( !this.strict )
                         {
@@ -134,7 +158,7 @@ namespace meta_api
                                     if( schema.Get( "minItems", uiTemp ) && obj.Length() < uiTemp )
                                     {
                                         this.errors++;
-                                        g_Game.AlertMessage( at_error, meta_api::json::GetLogPrefix( int( Version::V2 ) ) + "%1 array has less items than minimum expected %2 or more. got %3\n", name, uiTemp, obj.Length() );
+                                        g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::V2 ) ) + "%1 array has less items than minimum expected %2 or more. got %3\n", name, uiTemp, obj.Length() );
                                         if( this.strict )
                                             return false;
                                     }
@@ -142,7 +166,7 @@ namespace meta_api
                                     if( schema.Get( "maxItems", uiTemp ) && obj.Length() > uiTemp )
                                     {
                                         this.errors++;
-                                        g_Game.AlertMessage( at_error, meta_api::json::GetLogPrefix( int( Version::V2 ) ) + "%1 array has more items than maximum expected %2 or less. got %3\n", name, uiTemp, obj.Length() );
+                                        g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::V2 ) ) + "%1 array has more items than maximum expected %2 or less. got %3\n", name, uiTemp, obj.Length() );
                                         if( this.strict )
                                             return false;
                                     }
@@ -155,9 +179,9 @@ namespace meta_api
                                     bool allowUnevaluatedProperties = schema.ValueOrDefault( "unevaluatedProperties", true );
 
                                     const array<string>@ keys = obj.Keys;
-                                    uint length = obj.Length();
+                                    uint objlength = obj.Length();
 
-                                    for( uint ui = 0; ui < length; ui++ )
+                                    for( uint ui = 0; ui < objlength; ui++ )
                                     {
                                         string key = keys[ui];
 
@@ -180,11 +204,11 @@ namespace meta_api
                                             continue;
 
                                         this.errors++;
-                                        g_Game.AlertMessage( at_error, meta_api::json::GetLogPrefix( int( Version::V2 ) ) + "%1 got unevaluated property \"%2\" which is not allowed!\n", name, key );
+                                        g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::V2 ) ) + "%1 got unevaluated property \"%2\" which is not allowed!\n", name, key );
                                         if( this.strict )
                                             return false;
 
-                                        --length;
+                                        --objlength;
                                         obj.Remove( ui );
                                         --ui;
                                     }
@@ -194,16 +218,16 @@ namespace meta_api
                                     {
                                         json@ required = schema.ValueOrDefault( "required" );
 
-                                        uint length = required.Length();
+                                        uint requiredlength = required.Length();
 
-                                        for( uint ui = 0; ui < length; ui++ )
+                                        for( uint ui = 0; ui < requiredlength; ui++ )
                                         {
                                             string key = string( required[ui] );
 
                                             if( !obj.Contains( key ) )
                                             {
                                                 this.errors++;
-                                                g_Game.AlertMessage( at_error, meta_api::json::GetLogPrefix( int( Version::V2 ) ) + "%1 missing required key \"%2\"\n", name, key );
+                                                g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::V2 ) ) + "%1 missing required key \"%2\"\n", name, key );
                                                 if( this.strict )
                                                     return false;
                                             }
@@ -212,9 +236,9 @@ namespace meta_api
                                 }
 
                                 // validate all properties
-                                uint length = schemaProperties.Length();
+                                uint propertieslength = schemaProperties.Length();
 
-                                for( uint ui = 0; ui < length; ui++ )
+                                for( uint ui = 0; ui < propertieslength; ui++ )
                                 {
                                     json@ pair = schemaProperties[ui];
 
@@ -237,7 +261,7 @@ namespace meta_api
                                                 obj.Set( pair.Name, childObj );
                                             }
                                         }
-    
+
                                         if( childObj is null )
                                             continue;
                                     }
@@ -245,7 +269,7 @@ namespace meta_api
                                     string childName;
                                     snprintf( childName, "%1->%2", name, pair.Name );
                                     if( debug )
-                                        g_Game.AlertMessage( at_console, meta_api::json::GetLogPrefix( int( Version::V2 ) ) + "Validating %1\n", childName );
+                                        g_Game.AlertMessage( at_console, GetLogPrefix( int( Version::V2 ) ) + "Validating %1\n", childName );
 
                                     bool result = this.Validate( childObj, pair, childName, defaultChild );
 
@@ -265,7 +289,7 @@ namespace meta_api
                                 {
                                     obj.opAssign(fTemp);
                                     this.errors++;
-                                    g_Game.AlertMessage( at_error, meta_api::json::GetLogPrefix( int( Version::V2 ) ) + "%1 value is lesser than minimum expected %2 or more. got %3\n", name, fTemp, fValue );
+                                    g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::V2 ) ) + "%1 value is lesser than minimum expected %2 or more. got %3\n", name, fTemp, fValue );
                                     if( this.strict )
                                         return false;
                                 }
@@ -274,7 +298,7 @@ namespace meta_api
                                 {
                                     obj.opAssign(fTemp);
                                     this.errors++;
-                                    g_Game.AlertMessage( at_error, meta_api::json::GetLogPrefix( int( Version::V2 ) ) + "%1 value is higher than maximum expected %2 or less. got %3\n", name, fTemp, fValue );
+                                    g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::V2 ) ) + "%1 value is higher than maximum expected %2 or less. got %3\n", name, fTemp, fValue );
                                     if( this.strict )
                                         return false;
                                 }

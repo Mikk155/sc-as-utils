@@ -27,11 +27,10 @@ namespace Server
     /**
     *   @brief Checks the current map name against a list of names and optional wildcards.
     *   @param list Map names to check. Entries may contain a leading and/or trailing
-    *               '*' when wildcard matching is enabled. The array is cleared if freeArray is true.
+    *               '*' when wildcard matching is enabled.
     *   @param allowWildcarding Whether to allow '*' as a prefix or suffix wildcard.
-    *   @param freeArray Whether to resize list to zero after checking it.
     **/
-    bool IsMapListed( array<string>@ list, bool allowWildcarding = true, bool freeArray = false )
+    bool IsMapListed( array<string>&in list, bool allowWildcarding = true )
     {
         bool returnValue = false;
 
@@ -46,6 +45,9 @@ namespace Server
             for( uint ui = 0; ui < list.length(); ui++ )
             {
                 string key = list[ ui ];
+
+                if( key.IsEmpty() )
+                    continue;
 
                 bool HasPrefix = ( key[0] == '*' );
                 bool HasSuffix = key.EndsWith( '*' );
@@ -66,11 +68,6 @@ namespace Server
                     break;
                 }
             }
-        }
-
-        if( freeArray )
-        {
-            list.resize(0);
         }
 
         return false;

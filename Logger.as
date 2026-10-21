@@ -1,3 +1,27 @@
+/**
+*   MIT License
+*
+*   Copyright (c) 2025 Mikk155
+*
+*   Permission is hereby granted, free of charge, to any person obtaining a copy
+*   of this software and associated documentation files (the "Software"), to deal
+*   in the Software without restriction, including without limitation the rights
+*   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*   copies of the Software, and to permit persons to whom the Software is
+*   furnished to do so, subject to the following conditions:
+*
+*   The above copyright notice and this permission notice shall be included in all
+*   copies or substantial portions of the Software.
+*
+*   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+*   SOFTWARE.
+**/
+
 // This file's "SERVER" pre processor can safely be disabled to reduce compile time and memory
 
 // Logger's internal namespace.
@@ -506,19 +530,19 @@ class Logger
         return this.opIndex( this.m_Levels.getKeys().opIndex( index ) );
     }
 
-    int opForBegin() const 
+    int opForBegin() const
     {
         return 0;
     }
 
     /** @param it The current iterator position. */
-    bool opForEnd( int it ) const 
+    bool opForEnd( int it ) const
     {
         return it >= int(this.m_Levels.getSize());
     }
 
     /** @param it The current iterator position. */
-    int opForNext( int it ) const 
+    int opForNext( int it ) const
     {
         return it + 1;
     }
@@ -910,19 +934,19 @@ final class ASLoggerManager
         return false;
     }
 
-    int opForBegin() 
+    int opForBegin()
     {
         return 0;
     }
 
     /** @param it The current iterator position. */
-    bool opForEnd( int it ) 
+    bool opForEnd( int it )
     {
         return it > int( this.m_LoggerRefCount.length() );
     }
 
     /** @param it The current iterator position. */
-    int opForNext( int it ) 
+    int opForNext( int it )
     {
         return it + 1;
     }

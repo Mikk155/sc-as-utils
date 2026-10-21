@@ -1,25 +1,50 @@
+/**
+*   MIT License
+*
+*   Copyright (c) 2025 Mikk155
+*
+*   Permission is hereby granted, free of charge, to any person obtaining a copy
+*   of this software and associated documentation files (the "Software"), to deal
+*   in the Software without restriction, including without limitation the rights
+*   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*   copies of the Software, and to permit persons to whom the Software is
+*   furnished to do so, subject to the following conditions:
+*
+*   The above copyright notice and this permission notice shall be included in all
+*   copies or substantial portions of the Software.
+*
+*   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+*   SOFTWARE.
+**/
+
 namespace Server
 {
     /**
      * Checks whether a server plugin with the given name is loaded.
      *
-     * @param plugin_name Plugin name to search for.
-     * @param case_sensitive Whether the name must match letter case exactly. Defaults to false.
+     * @param pluginName Plugin name to search for.
+     * @param caseSensitive Whether the name must match letter case exactly. Defaults to false.
      */
-    bool IsPluginInstalled( const string&in plugin_name, bool case_sensitive = false )
+    bool IsPluginInstalled( const string&in pluginName, bool caseSensitive = false )
     {
         array<string>@ pluginList = g_PluginManager.GetPluginList();
 
-        if( case_sensitive )
+        if( caseSensitive )
         {
-            return ( pluginList.find( plugin_name ) >= 0 );
+            return ( pluginList.find( pluginName ) >= 0 );
         }
 
-        string plugin_name_lowercase =  plugin_name.ToLowercase();
+        string pluginName_lowercase =  pluginName;
+        pluginName_lowercase.ToLowercase();
 
         for( uint ui = 0; ui < pluginList.length(); ui++ )
         {
-            if( pluginList[ui].ToLowercase() == plugin_name_lowercase )
+            if( pluginList[ui].ToLowercase() == pluginName_lowercase )
             {
                 return true;
             }
