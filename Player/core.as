@@ -26,4 +26,5 @@
 #include "Colormap"
 #include "GetUniqueID"
 #include "FindPlayerBySteamID"
+#include "GiveItem"
 #include "RespawnPlayer"
