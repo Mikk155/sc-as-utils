@@ -1,3 +1,4 @@
+// disable E234
 // disable E117
 // disable E115
 // disable E121
@@ -12,6 +13,8 @@ namespace Logger
     bool g_SensitiveArguments = true;
     bool g_SensitiveKeywordArguments = true;
     bool g_AppendNewline = true;
+    // Insert g_GlobalName in the start of all logs.
+    bool g_InsertGlobalName;
 
     abstract class Base
     {
@@ -44,6 +47,12 @@ namespace Logger
 
     abstract class Logger : Base
     {
+        Logger()
+        {
+            weakref<Logger::Logger> loggerReference(this);
+            Logger::g_LoggerRefs.insertLast( loggerReference );
+        }
+
         array<weakref<Level>> m_Levels;
 
         const Level@ GetLevel( const string&in levelName ) const
@@ -69,6 +78,9 @@ namespace Logger
     class Level : Base
     {
         protected
+            string m_MessageName;
+
+        protected
             weakref<Logger> m_Owner;
 
         const Logger@ get_Owner() const property
@@ -81,18 +93,50 @@ namespace Logger
             return ( Base::get_Active() && this.Owner !is null && this.Owner.Active );
         }
 
-        Level( const string&in levelName, Logger@ ownerLogger, bool startActive = false )
+        Level( const string&in levelName, Logger@ ownerLogger, bool startActive = false, const string&in messageName = String::EMPTY_STRING )
         {
             this.Active = startActive;
             this.Name = levelName;
+
             this.m_Owner.opHndlAssign( ownerLogger );
+
             weakref<Level> thisReference(this);
             ownerLogger.m_Levels.insertLast( thisReference );
+
+            if( messageName.IsEmpty() )
+            {
+                this.m_MessageName = levelName.SubString( 0, 1 ).ToUppercase() + levelName.SubString( 1 );
+            }
+            else
+            {
+                this.m_MessageName = messageName;
+            }
         }
 
         string format( const string&in message, const string[]@ args = null, const dictionary@ kwargs = null ) const
         {
-            string buffer = message;
+            string buffer;
+
+            const Logger@ owner = this.Owner;
+
+            if( g_InsertGlobalName && !g_GlobalName.IsEmpty() )
+            {
+                buffer.opAddAssign( '[' );
+                buffer.opAddAssign( g_GlobalName );
+                buffer.opAddAssign( "] " );
+            }
+
+            if( !owner.Name.IsEmpty() )
+            {
+                buffer.opAddAssign( '[' );
+                buffer.opAddAssign( owner.Name );
+                buffer.opAddAssign( "] " );
+            }
+
+            buffer.opAddAssign( '[' );
+            buffer.opAddAssign( this.m_MessageName );
+            buffer.opAddAssign( "] " );
+            buffer.opAddAssign( message );
 
             if( args !is null )
             {
@@ -194,9 +238,11 @@ class Logger : Logger::Logger
     {
         this.Name = loggerName;
         this.Active = startActive;
+    }
 
-        weakref<Logger::Logger> loggerReference(this);
-        Logger::g_LoggerRefs.insertLast( loggerReference );
+    Logger( bool startActive = true )
+    {
+        this.Active = startActive;
     }
 
     private Logger::Level m_trace( "trace", this, false );
@@ -241,11 +287,12 @@ void StupidSpam()
 {
     // Configure
     Logger::g_GlobalName = g_Module.GetModuleName();
+    Logger::g_InsertGlobalName = true;
     @Logger::g_PrintCallback = function( const string&in message, const Logger::Level&in level ) {
         g_Game.AlertMessage( at_console, message );
     };
 
-    Logger logger( "Global" );
+    Logger logger();
 
     logger.error( "single message" );
     logger.error( "message with *args: {} {}!", { "Hello", "world" } );
