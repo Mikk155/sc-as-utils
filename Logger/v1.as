@@ -3,18 +3,50 @@
 // disable E115
 // disable E121
 // disable E230
+// You MUST configure the parameter Logger::Config. Callback is necesary.
 namespace Logger
 {
     funcdef void PrintCallback( const string&in, const Level&in );
 
-    // Global name used for commands and the global logger
-    string g_GlobalName;
-    PrintCallback@ g_PrintCallback;
-    bool g_SensitiveArguments = true;
-    bool g_SensitiveKeywordArguments = true;
-    bool g_AppendNewline = true;
-    // Insert g_GlobalName in the start of all logs.
-    bool g_InsertGlobalName;
+    final class Configuration
+    {
+        PrintCallback@ Callback;
+        Configuration@ SetCallback( PrintCallback@ callback ) {
+            @this.Callback = callback;
+            return this;
+        }
+
+        bool SensitiveArguments = true;
+        Configuration@ SetSensitiveArguments( bool sensitiveArguments ) {
+            this.SensitiveArguments = sensitiveArguments;
+            return this;
+        }
+
+        bool SensitiveKeywordArguments = true;
+        Configuration@ SetSensitiveKeywordArguments( bool sensitiveKeywordArguments ) {
+            this.SensitiveKeywordArguments = sensitiveKeywordArguments;
+            return this;
+        }
+
+        bool AppendNewline = true;
+        Configuration@ SetAppendNewline( bool appendNewline ) {
+            this.AppendNewline = appendNewline;
+            return this;
+        }
+
+        bool PrefixWithGlobalName = true;
+        Configuration@ SetPrefixWithGlobalName( bool prefixWithGlobalName ) {
+            this.PrefixWithGlobalName = prefixWithGlobalName;
+            return this;
+        }
+
+        string GlobalName;
+        Configuration@ SetGlobalName( const string&in globalName ) {
+            this.GlobalName = globalName;
+            return this;
+        }
+    }
+    Configuration@ Config = Configuration();
 
     abstract class Base
     {
@@ -42,51 +74,6 @@ namespace Logger
         void set_Active( bool value ) property
         {
             this.m_Active = value;
-        }
-    }
-
-    abstract class Logger : Base
-    {
-        Logger()
-        {
-            weakref<Logger::Logger> loggerReference(this);
-            Logger::g_LoggerRefs.insertLast( loggerReference );
-        }
-
-        ~Logger()
-        {
-            const uint length = g_LoggerRefs.length();
-
-            for( uint ui = length -1; ui >= 0; ui-- )
-            {
-                Logger@ logger = g_LoggerRefs[ui].get();
-
-                if( logger is null || logger is this )
-                {
-                    g_LoggerRefs.removeAt(ui);
-                }
-            }
-        }
-
-        array<weakref<Level>> m_Levels;
-
-        const Level@ GetLevel( const string&in levelName ) const
-        {
-            const uint length = this.m_Levels.length();
-
-            for( uint ui = 0; ui < length; ui++ )
-            {
-                Level@ level = this.m_Levels[ui].get();
-
-                if( level !is null && level.Name == levelName )
-                    return level;
-            }
-            return null;
-        }
-
-        const Level@ opIndex( const string&in levelName ) const
-        {
-            return this.GetLevel( levelName );
         }
     }
 
@@ -134,10 +121,10 @@ namespace Logger
 
             const Logger@ owner = this.Owner;
 
-            if( g_InsertGlobalName && !g_GlobalName.IsEmpty() )
+            if( Config.PrefixWithGlobalName && !Config.GlobalName.IsEmpty() )
             {
                 buffer.opAddAssign( '[' );
-                buffer.opAddAssign( g_GlobalName );
+                buffer.opAddAssign( Config.GlobalName );
                 buffer.opAddAssign( "] " );
             }
 
@@ -163,7 +150,7 @@ namespace Logger
 
                     if( index == String::INVALID_INDEX )
                     {
-                        if( g_SensitiveArguments )
+                        if( Config.SensitiveArguments )
                         {
                             this.opCall( "ERROR got {} arguments but only {} were defined in message: {}", { length, ui, message } );
                             int[]a(0);a[1];
@@ -190,7 +177,7 @@ namespace Logger
 
                     if( index == String::INVALID_INDEX )
                     {
-                        if( g_SensitiveKeywordArguments )
+                        if( Config.SensitiveKeywordArguments )
                         {
                             this.opCall( "ERROR got {} key word but is not defined in message: {}", { keyword, message } );
                             int[]a(0);a[1];
@@ -203,7 +190,7 @@ namespace Logger
 
                     if( replacement.IsEmpty() )
                     {
-                        if( g_SensitiveKeywordArguments )
+                        if( Config.SensitiveKeywordArguments )
                         {
                             this.opCall( "ERROR got empty/non-string key word value in message: {}", { keyword, message } );
                             int[]a(0);a[1];
@@ -218,7 +205,7 @@ namespace Logger
                 }
             }
 
-            if( g_AppendNewline && !buffer.EndsWith( '\n' ) )
+            if( Config.AppendNewline && !buffer.EndsWith( '\n' ) )
             {
                 buffer.opAddAssign( '\n' );
             }
@@ -228,12 +215,12 @@ namespace Logger
 
         bool print( const string&in message, const string[]@ args = null, const dictionary@ kwargs = null ) const
         {
-            if( g_PrintCallback is null || !this.Active )
+            if( !this.Active )
             {
                 return false;
             }
 
-            g_PrintCallback( format( message, args, kwargs ), this );
+            Config.Callback( format( message, args, kwargs ), this );
 
             return true;
         }
@@ -269,45 +256,89 @@ namespace Logger
     }
 }
 
-class Logger : Logger::Logger
+class Logger : Logger::Base
 {
-    Logger( const string&in loggerName, bool startActive = true )
+    Logger()
     {
-        this.Name = loggerName;
-        this.Active = startActive;
+        weakref<Logger::Logger> loggerReference(this);
+        Logger::g_LoggerRefs.insertLast( loggerReference );
     }
 
-    Logger( bool startActive = true )
+    ~Logger()
     {
-        this.Active = startActive;
+        const uint length = Logger::g_LoggerRefs.length();
+
+        for( uint ui = length -1; ui >= 0; ui-- )
+        {
+            Logger@ logger = Logger::g_LoggerRefs[ui].get();
+
+            if( logger is null || logger is this )
+            {
+                Logger::g_LoggerRefs.removeAt(ui);
+            }
+        }
     }
 
-    private Logger::Level m_trace( "trace", this, false );
+    protected
+        array<weakref<Logger::Level>> m_Levels;
+
+    const Logger::Level@ GetLevel( const string&in levelName ) const
+    {
+        const uint length = this.m_Levels.length();
+
+        for( uint ui = 0; ui < length; ui++ )
+        {
+            Logger::Level@ level = this.m_Levels[ui].get();
+
+            if( level !is null && level.Name == levelName )
+                return level;
+        }
+        return null;
+    }
+
+    const Logger::Level@ opIndex( const string&in levelName ) const
+    {
+        return this.GetLevel( levelName );
+    }
+
+    Logger@ SetName( const string&in name )
+    {
+        this.Name = name;
+        return this;
+    }
+
+    Logger@ SetActive( const bool active )
+    {
+        this.Active = active;
+        return this;
+    }
+
+    protected Logger::Level m_trace( "trace", this, false );
     const Logger::Level& get_trace() const property {
         return this.m_trace;
     }
 
-    private Logger::Level m_debug( "debug", this, false );
+    protected Logger::Level m_debug( "debug", this, false );
     const Logger::Level& get_debug() const property {
         return this.m_debug;
     }
 
-    private Logger::Level m_info( "info", this, false );
+    protected Logger::Level m_info( "info", this, false );
     const Logger::Level& get_info() const property {
         return this.m_info;
     }
 
-    private Logger::Level m_warning( "warning", this, true );
+    protected Logger::Level m_warning( "warning", this, true );
     const Logger::Level& get_warning() const property {
         return this.m_warning;
     }
 
-    private Logger::Level m_error( "error", this, true );
+    protected Logger::Level m_error( "error", this, true );
     const Logger::Level& get_error() const property {
         return this.m_error;
     }
 
-    private Logger::Level m_critical( "critical", this, true );
+    protected Logger::Level m_critical( "critical", this, true );
     const Logger::Level& get_critical() const property {
         return this.m_critical;
     }
@@ -323,13 +354,15 @@ void PluginInit()
 void StupidSpam()
 {
     // Configure
-    Logger::g_GlobalName = g_Module.GetModuleName();
-    Logger::g_InsertGlobalName = true;
-    @Logger::g_PrintCallback = function( const string&in message, const Logger::Level&in level ) {
-        g_Game.AlertMessage( at_console, message );
-    };
+    Logger::Config
+        .SetCallback(
+            function( const string&in message, const Logger::Level&in level ) {
+                g_Game.AlertMessage( at_console, message );
+            }
+        )
+        .SetGlobalName( g_Module.GetModuleName() );
 
-    Logger logger();
+    Logger logger(true);
 
     logger.error( "single message" );
     logger.error( "message with *args: {} {}!", { "Hello", "world" } );
