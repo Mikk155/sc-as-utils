@@ -1,3 +1,5 @@
+// disable E117
+// disable E115
 // disable E121
 // disable E230
 namespace Logger
@@ -43,6 +45,25 @@ namespace Logger
     abstract class Logger : Base
     {
         array<weakref<Level>> m_Levels;
+
+        const Level@ GetLevel( const string&in levelName ) const
+        {
+            const uint length = this.m_Levels.length();
+
+            for( uint ui = 0; ui < length; ui++ )
+            {
+                Level@ level = this.m_Levels[ui].get();
+
+                if( level !is null && level.Name == levelName )
+                    return level;
+            }
+            return null;
+        }
+
+        const Level@ opIndex( const string&in levelName ) const
+        {
+            return this.GetLevel( levelName );
+        }
     }
 
     class Level : Base
