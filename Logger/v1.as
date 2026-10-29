@@ -103,7 +103,7 @@ namespace Logger
             this.m_Owner.opHndlAssign( ownerLogger );
 
             weakref<Level> thisReference(this);
-            ownerLogger.m_Levels.insertLast( thisReference );
+            ownerLogger.__Levels__.insertLast( thisReference );
 
             if( messageName.IsEmpty() )
             {
@@ -233,6 +233,21 @@ namespace Logger
 
     array<weakref<Logger>> g_LoggerRefs;
 
+    bool Find( const string&in loggerName, weakref<Logger>&out logger )
+    {
+        const uint length = g_LoggerRefs.length();
+
+        for( uint ui = 0; ui < length; ui++ )
+        {
+            logger = g_LoggerRefs[ui];
+
+            if( logger.get() !is null && loggerName == logger.get().Name )
+                return true;
+        }
+        logger.opHndlAssign(null);
+        return false;
+    }
+
     bool Find( const string&in loggerName, Logger@&out logger )
     {
         const uint length = g_LoggerRefs.length();
@@ -275,8 +290,9 @@ namespace Logger
 
 class Logger : Logger::Base
 {
-    Logger()
+    Logger( bool startActive = true )
     {
+        this.Active = startActive;
         weakref<Logger::Logger> loggerReference(this);
         Logger::g_LoggerRefs.insertLast( loggerReference );
     }
@@ -296,16 +312,22 @@ class Logger : Logger::Base
         }
     }
 
-    protected
-        array<weakref<Logger::Level>> m_Levels;
+    weakref<Logger> get_WeakReference() const property
+    {
+        weakref<Logger> loggerRef;
+        Logger::Find( this.Name, loggerRef );
+        return loggerRef;
+    }
+
+    array<weakref<Logger::Level>> __Levels__;
 
     const Logger::Level@ GetLevel( const string&in levelName ) const
     {
-        const uint length = this.m_Levels.length();
+        const uint length = this.__Levels__.length();
 
         for( uint ui = 0; ui < length; ui++ )
         {
-            Logger::Level@ level = this.m_Levels[ui].get();
+            Logger::Level@ level = this.__Levels__[ui].get();
 
             if( level !is null && level.Name == levelName )
                 return level;
