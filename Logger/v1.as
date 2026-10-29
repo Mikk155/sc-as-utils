@@ -53,6 +53,21 @@ namespace Logger
             Logger::g_LoggerRefs.insertLast( loggerReference );
         }
 
+        ~Logger()
+        {
+            const uint length = g_LoggerRefs.length();
+
+            for( uint ui = length -1; ui >= 0; ui-- )
+            {
+                Logger@ logger = g_LoggerRefs[ui].get();
+
+                if( logger is null || logger is this )
+                {
+                    g_LoggerRefs.removeAt(ui);
+                }
+            }
+        }
+
         array<weakref<Level>> m_Levels;
 
         const Level@ GetLevel( const string&in levelName ) const
@@ -230,6 +245,28 @@ namespace Logger
     }
 
     array<weakref<Logger>> g_LoggerRefs;
+
+    bool Find( const string&in loggerName, Logger@&out logger )
+    {
+        const uint length = g_LoggerRefs.length();
+
+        for( uint ui = 0; ui < length; ui++ )
+        {
+            @logger = g_LoggerRefs[ui].get();
+
+            if( logger !is null && loggerName == logger.Name )
+                return true;
+        }
+        @logger = null;
+        return false;
+    }
+
+    const Logger@ Find( const string&in loggerName )
+    {
+        Logger@ logger;
+        Find( loggerName, logger );
+        return logger;
+    }
 }
 
 class Logger : Logger::Logger
