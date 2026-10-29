@@ -254,6 +254,23 @@ namespace Logger
         Find( loggerName, logger );
         return logger;
     }
+
+    const Logger@ First( const string&in loggerName )
+    {
+        return Find( loggerName );
+    }
+
+    const Logger@ FirstOrDefault( const string&in loggerName )
+    {
+        const Logger@ logger = Find( loggerName );
+
+        if( logger is null )
+        {
+            return Logger().SetName( loggerName );
+        }
+
+        return logger;
+    }
 }
 
 class Logger : Logger::Base
