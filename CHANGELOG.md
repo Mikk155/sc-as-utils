@@ -1,3 +1,6 @@
+# 29/10/2026
+- Created Logger V1
+
 # 20/10/2026
 - Formated and fixed all files.
 - Added "core" scripts including everything in their respective category.
