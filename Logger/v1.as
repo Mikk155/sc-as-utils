@@ -66,12 +66,12 @@ namespace Logger
         protected
             bool m_Active;
 
-        const bool get_Active() const property
+        const bool get_active() const property
         {
             return this.m_Active;
         }
 
-        void set_Active( bool value ) property
+        void set_active( bool value ) property
         {
             this.m_Active = value;
         }
@@ -90,14 +90,14 @@ namespace Logger
             return this.m_Owner.get();
         }
 
-        const bool get_Active() const property override
+        const bool get_active() const property override
         {
-            return ( Base::get_Active() && this.Owner !is null && this.Owner.Active );
+            return ( Base::get_active() && this.Owner !is null && this.Owner.active );
         }
 
         Level( const string&in levelName, Logger@ ownerLogger, bool startActive = false, const string&in messageName = String::EMPTY_STRING )
         {
-            this.Active = startActive;
+            this.active = startActive;
             this.Name = levelName;
 
             this.m_Owner.opHndlAssign( ownerLogger );
@@ -215,7 +215,7 @@ namespace Logger
 
         bool print( const string&in message, const string[]@ args = null, const dictionary@ kwargs = null ) const
         {
-            if( !this.Active )
+            if( !this.active )
             {
                 return false;
             }
@@ -290,9 +290,10 @@ namespace Logger
 
 class Logger : Logger::Base
 {
-    Logger( bool startActive = true )
+    Logger( const string&in name = String::EMPTY_STRING, bool startActive = true )
     {
-        this.Active = startActive;
+        this.Name = name;
+        this.active = startActive;
         weakref<Logger::Logger> loggerReference(this);
         Logger::g_LoggerRefs.insertLast( loggerReference );
     }
@@ -346,9 +347,9 @@ class Logger : Logger::Base
         return this;
     }
 
-    Logger@ SetActive( const bool active )
+    Logger@ SetActive( const bool startActive )
     {
-        this.Active = active;
+        this.active = startActive;
         return this;
     }
 
@@ -381,30 +382,4 @@ class Logger : Logger::Base
     const Logger::Level& get_critical() const property {
         return this.m_critical;
     }
-}
-
-void PluginInit()
-{
-    g_Module.ScriptInfo.SetAuthor( "Mikk155" );
-    g_Module.ScriptInfo.SetContactInfo( "https://github.com/Mikk155/Sven-Co-op" );
-    g_Scheduler.SetTimeout( "StupidSpam", 0.01f );
-}
-
-void StupidSpam()
-{
-    // Configure
-    Logger::Config
-        .SetCallback(
-            function( const string&in message, const Logger::Level&in level ) {
-                g_Game.AlertMessage( at_console, message );
-            }
-        )
-        .SetGlobalName( g_Module.GetModuleName() );
-
-    Logger logger(true);
-
-    logger.error( "single message" );
-    logger.error( "message with *args: {} {}!", { "Hello", "world" } );
-    logger.error( "message with *kwargs: {h} {w}!", null, { { "h", "Hello" }, { "w", "world" } } );
-    logger.error( "message with *args & *kwargs: {} {w}{}", { "Hello", "!" }, { { "w", "world" } } );
 }
