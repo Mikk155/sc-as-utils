@@ -1,5 +1,7 @@
 #include "v2"
 #include "v2/time"
+#include "v2/json/v1"
+
 void PluginInit()
 {
     g_Module.ScriptInfo.SetAuthor( "Mikk155" );
@@ -22,7 +24,13 @@ void StupidSpam()
 
     weakref<Logger> logger_Ref = Logger::Global();
     Logger@ logger = logger_Ref.get();
-    Logger::SetStateAll( true, true );
+//    Logger::SetStateAll( true, true );
+
+    Logger::json::v1::configure( """{
+"global": {
+    "info": true
+}
+}""" );
 
     if( logger !is null )
     {
