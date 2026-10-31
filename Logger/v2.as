@@ -1,5 +1,5 @@
 /**
- * @file Logger/v1.as
+ * @file Logger/v2.as
  * @brief Configurable logging utilities.
  *
  * A logger is composed of a name and a set of log levels. Messages are
@@ -131,8 +131,11 @@ namespace Logger
     /** @brief Common name and activation state shared by loggers and levels. */
     abstract class Base
     {
-        // Additional callback when printing.
-        // the Level callback is called first, then the Logger callback and then the global callback.
+        /**
+         * @brief Optional callback invoked after the level callback.
+         *
+         * Callbacks run in level, logger, and global configuration order.
+         */
         PrintCallback@ Callback;
 
         protected
@@ -153,18 +156,18 @@ namespace Logger
 
         protected
             /** @brief Internal activation state. */
-            bool m_Active;
+            bool m_active = true;
 
         /** @brief Whether this object is active. */
         const bool get_active() const property
         {
-            return this.m_Active;
+            return this.m_active;
         }
 
         /** @brief Sets the activation state of this object. */
         void set_active( bool value ) property
         {
-            this.m_Active = value;
+            this.m_active = value;
         }
     }
 
@@ -355,7 +358,10 @@ namespace Logger
                 ownerLogger.Callback( formatedString, this );
             }
 
-            Config.Callback( formatedString, this );
+            if( Config.Callback !is null )
+            {
+                Config.Callback( formatedString, this );
+            }
 
             return true;
         }
@@ -373,11 +379,11 @@ namespace Logger
         }
     }
 
-    /** @brief All currently registered Logger instances. */
+    /** @brief All currently registered Logger instances, indexed by name. */
     dictionary g_Loggers;
 
     /**
-     * @brief Alias for Find(const string&in).
+     * @brief Gets a registered logger by name.
      * @param loggerName Name to search for.
      * @return The matching logger, or null when it does not exist.
      */
@@ -394,18 +400,35 @@ namespace Logger
 //        return cast<Logger@>( g_Loggers[ loggerName ] );
     }
 
+    /**
+     * @brief Finds a registered logger without creating one.
+     * @param loggerName Name to search for.
+     * @return A weak reference to the matching logger.
+     */
     weakref<Logger> Find( const string&in loggerName )
     {
-        weakref<Logger> loggerRef( First( loggerName ) );
+        weakref<Logger> loggerRef;
+        loggerRef.opHndlAssign( First( loggerName ) );
         return loggerRef;
     }
 
+    /**
+     * @brief Finds a registered logger and reports whether it exists.
+     * @param loggerName Name to search for.
+     * @param logger Receives a weak reference to the matching logger.
+     * @return True when a matching logger exists.
+     */
     bool Find( const string&in loggerName, weakref<Logger>&out logger )
     {
         logger = Find( loggerName );
         return ( logger.get() !is null );
     }
 
+    /**
+     * @brief Gets a registered logger, creating it when necessary.
+     * @param loggerName Name for the logger; empty selects the global logger.
+     * @return A weak reference to the registered logger.
+     */
     weakref<Logger> FirstOrDefault( string&in loggerName = String::EMPTY_STRING )
     {
         Logger@ logger;
@@ -422,21 +445,36 @@ namespace Logger
             logger.SetName( loggerName );
         }
 
-        weakref<Logger> loggerRef( logger );
+        weakref<Logger> loggerRef;
+        loggerRef.opHndlAssign( logger );
 
         return loggerRef;
     }
 
+    /**
+     * @brief Gets or creates a named shared logger.
+     * @param loggerName Name of the shared logger.
+     * @return A weak reference to the shared logger.
+     */
     weakref<Logger> Shared( string&in loggerName )
     {
         return FirstOrDefault( loggerName );
     }
 
+    /**
+     * @brief Gets or creates the global logger.
+     * @return A weak reference to the logger named `global`.
+     */
     weakref<Logger> Global()
     {
         return FirstOrDefault( String::EMPTY_STRING );
     }
 
+    /**
+     * @brief Gets or creates a registered logger.
+     * @param name Logger name; empty selects the global logger.
+     * @return A weak reference to the registered logger.
+     */
     weakref<Logger> Register( const string&in name = String::EMPTY_STRING )
     {
         return FirstOrDefault( name );
@@ -453,6 +491,16 @@ class Logger : Logger::Base
 {
     /** @brief Weak references to the levels owned by this logger. */
     array<weakref<Logger::Level>> __Levels__;
+
+    /**
+     * @brief Creates an active logger with its standard levels.
+     *
+     * The logger must be active for an active level to print a message.
+     */
+    Logger()
+    {
+        this.active = true;
+    }
 
     /**
      * @brief Gets a level by name.
@@ -507,42 +555,42 @@ class Logger : Logger::Base
 
     /** @brief Trace level, disabled by default. */
     protected Logger::Level m_trace( "trace", this, false );
-    /** @brief Gets the trace level. */
+    /** @brief Gets the trace level. @return The trace level. */
     const Logger::Level& get_trace() const property {
         return this.m_trace;
     }
 
     /** @brief Debug level, disabled by default. */
     protected Logger::Level m_debug( "debug", this, false );
-    /** @brief Gets the debug level. */
+    /** @brief Gets the debug level. @return The debug level. */
     const Logger::Level& get_debug() const property {
         return this.m_debug;
     }
 
     /** @brief Info level, disabled by default. */
     protected Logger::Level m_info( "info", this, false );
-    /** @brief Gets the info level. */
+    /** @brief Gets the info level. @return The info level. */
     const Logger::Level& get_info() const property {
         return this.m_info;
     }
 
     /** @brief Warning level, enabled by default. */
     protected Logger::Level m_warning( "warning", this, true );
-    /** @brief Gets the warning level. */
+    /** @brief Gets the warning level. @return The warning level. */
     const Logger::Level& get_warning() const property {
         return this.m_warning;
     }
 
     /** @brief Error level, enabled by default. */
     protected Logger::Level m_error( "error", this, true );
-    /** @brief Gets the error level. */
+    /** @brief Gets the error level. @return The error level. */
     const Logger::Level& get_error() const property {
         return this.m_error;
     }
 
     /** @brief Critical level, enabled by default. */
     protected Logger::Level m_critical( "critical", this, true );
-    /** @brief Gets the critical level. */
+    /** @brief Gets the critical level. @return The critical level. */
     const Logger::Level& get_critical() const property {
         return this.m_critical;
     }

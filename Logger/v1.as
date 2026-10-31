@@ -1,4 +1,3 @@
-#if FALSE
 /**
  * @file Logger/v1.as
  * @brief Configurable logging utilities.
@@ -586,4 +585,3 @@ class Logger : Logger::Base
         return this.m_critical;
     }
 }
-#endif
