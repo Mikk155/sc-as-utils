@@ -332,9 +332,9 @@ namespace Logger
         }
 
         /**
-         * @brief sends a message when this level is active.
-         * @param message Message.
-         * @return True when the message was sent; otherwise false.
+         * @brief Sends an already formatted message when this level is active.
+         * @param message Formatted message to send.
+         * @return True when all applicable callbacks accept the message.
          */
         bool printf( string&in message ) const
         {
@@ -404,13 +404,22 @@ namespace Logger
     /** @brief All currently registered Logger instances, indexed by name. */
     dictionary g_Loggers;
 
-    // Delete all loggers. this wont delete loggers that are kept by reference other than weakref.
+    /**
+     * @brief Deletes every logger from the registry.
+     *
+     * Loggers held by strong references elsewhere remain alive.
+     */
     void Shutdown()
     {
         g_Loggers.deleteAll();
     }
 
-    // Delete all loggers. this wont delete loggers that are kept by reference other than weakref.
+    /**
+     * @brief Removes one logger from the registry.
+     * @param logger Logger to remove.
+     *
+     * The logger remains alive while another strong reference owns it.
+     */
     void Shutdown( Logger@ logger )
     {
         if( logger.name.IsEmpty() )
@@ -423,6 +432,9 @@ namespace Logger
         }
     }
 
+    /**
+     * @brief Iterates over the loggers currently in the registry.
+     */
     final class Iterator
     {
         private
@@ -431,6 +443,10 @@ namespace Logger
         private
             array<string>@ m_Names;
 
+        /**
+         * @brief Gets the next logger.
+         * @return The next logger, or null after the final entry.
+         */
         Logger@ Next()
         {
             if( this.m_Current >= this.m_Names.length() )
@@ -439,12 +455,20 @@ namespace Logger
             return cast<Logger@>( g_Loggers[ this.m_Names[ this.m_Current++ ] ] );
         };
 
+        /**
+         * @brief Gets the next logger through an output parameter.
+         * @param logger Receives the next logger.
+         * @return True when a logger was returned.
+         */
         bool Next( Logger@&out logger )
         {
             @logger = this.Next();
             return ( logger !is null );
         };
 
+        /**
+         * @brief Creates an iterator snapshot of the current registry names.
+         */
         Iterator()
         {
             @this.m_Names = g_Loggers.getKeys();
@@ -452,6 +476,11 @@ namespace Logger
         }
     }
 
+    /**
+     * @brief Changes the active state of every registered logger.
+     * @param state New active state.
+     * @param levelsToo Also apply the state to every logger level.
+     */
     void SetStateAll( bool state, bool levelsToo = false )
     {
         Iterator it;
@@ -592,6 +621,9 @@ class Logger : Logger::Base
         this.active = true;
     }
 
+    /**
+     * @brief Removes this logger from the global registry.
+     */
     void shutdown()
     {
         Logger::Shutdown(this);
@@ -616,6 +648,11 @@ class Logger : Logger::Base
         return null;
     }
 
+    /**
+     * @brief Gets a level by numeric index.
+     * @param idx Zero-based level index.
+     * @return The level at the index, or null when it is out of range.
+     */
     const Logger::Level@ GetLevel( uint idx ) const
     {
         if( idx < this.__Levels__.length() )
@@ -623,13 +660,23 @@ class Logger : Logger::Base
         return null;
     }
 
+    /**
+     * @brief Gets a level by signed numeric index.
+     * @param idx Zero-based level index.
+     * @return The level at the index, or null for a negative or invalid index.
+     */
     const Logger::Level@ GetLevel( int idx ) const
     {
-        if( idx > 0 )
+        if( idx >= 0 )
             return this.GetLevel( uint(idx) );
         return null;
     }
 
+    /**
+     * @brief Gets a mutable level by numeric index.
+     * @param idx Zero-based level index.
+     * @return The level at the index, or null when it is out of range.
+     */
     Logger::Level@ GetLevel( uint idx )
     {
         if( idx < this.__Levels__.length() )
@@ -637,9 +684,14 @@ class Logger : Logger::Base
         return null;
     }
 
+    /**
+     * @brief Gets a mutable level by signed numeric index.
+     * @param idx Zero-based level index.
+     * @return The level at the index, or null for a negative or invalid index.
+     */
     Logger::Level@ GetLevel( int idx )
     {
-        if( idx > 0 )
+        if( idx >= 0 )
             return this.GetLevel( uint(idx) );
         return null;
     }
