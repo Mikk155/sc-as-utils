@@ -1,6 +1,6 @@
 #include "v2"
 #include "v2/time"
-#include "v2/json/v1"
+#include "v2/json/v2"
 
 void PluginInit()
 {
@@ -26,7 +26,7 @@ void StupidSpam()
     Logger@ logger = logger_Ref.get();
 //    Logger::SetStateAll( true, true );
 
-    Logger::json::v1::configure( """{
+    Logger::json::v2::configure( """{
 "global": {
     "info": true
 }

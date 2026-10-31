@@ -22,12 +22,29 @@
 *   SOFTWARE.
 **/
 
+/**
+ * @file Logger/v2/time.as
+ * @brief Timestamp formatting helpers for Logger v2.
+ */
+
 namespace Logger
 {
+    /**
+     * @brief Timestamp formatting helpers.
+     */
     namespace time
     {
+        /** @brief Date and time format used for log message prefixes. */
         string date_format = "%d/%m/%Y %H:%M:%S";
 
+        /**
+         * @brief Prefixes a message with the current local date and time.
+         * @param strIn Message to format.
+         * @param strOut Receives the formatted message.
+         *
+         * If the date cannot be formatted, the original message is returned
+         * without a timestamp prefix.
+         */
         void format( const string&in strIn, string&out strOut )
         {
             strOut = "";
@@ -41,6 +58,11 @@ namespace Logger
             strOut.opAddAssign( strIn );
         }
 
+        /**
+         * @brief Prefixes a message with the current local date and time.
+         * @param strIn Message to format.
+         * @return The formatted message.
+         */
         string format( const string&in strIn )
         {
             string strOut;

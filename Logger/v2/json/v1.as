@@ -22,14 +22,29 @@
 *   SOFTWARE.
 **/
 
+/**
+ * @file Logger/v2/json/v1.as
+ * @brief JSON v1 configuration support for Logger v2.
+ *
+ * This compatibility module converts JSON v1 data to AngelScript
+ * dictionaries before applying logger level states.
+ */
+
 #include "../../../meta_api/json/v1"
 
 namespace Logger
 {
     namespace json
     {
+        /**
+         * @brief JSON v1 based logger configuration helpers.
+         */
         namespace v1
         {
+            /**
+             * @brief Builds the schema properties for all registered loggers.
+             * @return A dictionary containing logger configuration properties.
+             */
             dictionary@ __get_properties__()
             {
                 dictionary@ properties = {};
@@ -68,6 +83,10 @@ namespace Logger
                 return properties;
             }
 
+            /**
+             * @brief Builds the complete logger configuration schema.
+             * @return A dictionary containing the JSON v1 schema.
+             */
             dictionary@ schema()
             {
                 return {
@@ -79,6 +98,10 @@ namespace Logger
                 };
             }
 
+            /**
+             * @brief Applies logger level states from JSON text or a file.
+             * @param obj JSON text or a recognized JSON filename.
+             */
             void configure( const string&in obj )
             {
                 dictionary@ obj2;
@@ -86,6 +109,10 @@ namespace Logger
                 configure( obj2 );
             }
 
+            /**
+             * @brief Applies logger level states from a dictionary.
+             * @param obj Dictionary containing logger names and level states.
+             */
             void configure( dictionary@ obj )
             {
                 if( obj is null )
