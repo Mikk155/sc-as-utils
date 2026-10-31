@@ -433,14 +433,15 @@ namespace Logger
 
         Logger@ Next()
         {
-            string curName = this.m_Names[this.m_Current--];
-            return cast<Logger@>( g_Loggers[ curName ] );
+            if( this.m_Current >= this.m_Names.length() )
+                return null;
+
+            return cast<Logger@>( g_Loggers[ this.m_Names[ this.m_Current++ ] ] );
         };
 
         bool Next( Logger@&out logger )
         {
-            string curName = this.m_Names[this.m_Current--];
-            @logger = cast<Logger@>( g_Loggers[ curName ] );
+            @logger = this.Next();
             return ( logger !is null );
         };
 
@@ -451,40 +452,24 @@ namespace Logger
         }
     }
 
-    void SetStateAll( bool state )
+    void SetStateAll( bool state, bool levelsToo = false )
     {
         Iterator it;
         Logger@ logger;
         while( it.Next( logger ) )
         {
             logger.SetActive( state );
+
+            if( levelsToo )
+            {
+                int idx = 0;
+                Level@ level;
+                while( ( @level = logger.GetLevel(idx++) ) !is null )
+                {
+                    level.active = state;
+                }
+            }
         }
-    }
-
-    void EnableAll()
-    {
-        SetStateAll( true );
-    }
-
-    void DisableAll()
-    {
-        SetStateAll( false );
-    }
-
-    void SetState( Logger@ logger, bool state )
-    {
-        if( logger !is null )
-            logger.SetActive( state );
-    }
-
-    void Enable( Logger@ logger )
-    {
-        SetState( logger, true );
-    }
-
-    void Disable( Logger@ logger )
-    {
-        SetState( logger, false );
     }
 
     /**
@@ -628,6 +613,34 @@ class Logger : Logger::Base
             if( level !is null && level.name == levelName )
                 return level;
         }
+        return null;
+    }
+
+    const Logger::Level@ GetLevel( uint idx ) const
+    {
+        if( idx < this.__Levels__.length() )
+            return this.__Levels__[idx].get();
+        return null;
+    }
+
+    const Logger::Level@ GetLevel( int idx ) const
+    {
+        if( idx > 0 )
+            return this.GetLevel( uint(idx) );
+        return null;
+    }
+
+    Logger::Level@ GetLevel( uint idx )
+    {
+        if( idx < this.__Levels__.length() )
+            return this.__Levels__[idx].get();
+        return null;
+    }
+
+    Logger::Level@ GetLevel( int idx )
+    {
+        if( idx > 0 )
+            return this.GetLevel( uint(idx) );
         return null;
     }
 
