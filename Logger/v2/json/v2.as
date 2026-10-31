@@ -66,20 +66,26 @@ namespace Logger
 
                         curData.Set( "type", "boolean" );
                         curData.Set( "description", "State for logger level \"" + level.name + "\"" );
-                        curData.Set( "default", level.active );
+
+                        if( level.active )
+                        {
+                            curData.Set( "default", level.active );
+                        }
 
                         levels.Set( level.name, curData );
                     }
+
+                    string labelName = logger.name.IsEmpty() ? "global" : logger.name;
 
                     meta_api::json::v2::json@ property = meta_api::json::v2::json();
 
                     property.Set( "type", "object" );
                     property.Set( "unevaluatedProperties", false );
                     property.Set( "title", "Logging settings" );
-                    property.Set( "description", "Default state for different log levels." );
+                    property.Set( "description", "Default state for different log levels of \"" + labelName + "\"" );
                     property.Set( "properties", levels );
 
-                    properties.Set( logger.name.IsEmpty() ? "global" : logger.name, property );
+                    properties.Set( labelName, property );
                 }
 
                 return properties;
@@ -96,7 +102,7 @@ namespace Logger
                 result.Set( "type", "object" );
                 result.Set( "unevaluatedProperties", false );
                 result.Set( "title", "Logging settings" );
-                result.Set( "description", "Default state for different log levels." );
+                result.Set( "description", "Default state for different loggers." );
                 result.Set( "properties", __get_properties__() );
 
                 return result;

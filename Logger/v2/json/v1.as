@@ -59,6 +59,8 @@ namespace Logger
                     int idx = 0;
                     Logger::Level@ level;
 
+                    string labelName = logger.name.IsEmpty() ? "global" : logger.name;
+
                     while( ( @level = logger.GetLevel(idx++) ) !is null )
                     {
                         dictionary@ curData = {
@@ -74,10 +76,10 @@ namespace Logger
                         { "type", "object" },
                         { "unevaluatedProperties", false },
                         { "title", "Logging settings" },
-                        { "description", "Default state for different log levels." },
+                        { "description", "Default state for log levels of \"" + labelName + "\"" },
                         { "properties", levels }
                     };
-                    @properties[ logger.name.IsEmpty() ? "global" : logger.name ] = property;
+                    @properties[ labelName ] = property;
                 }
 
                 return properties;
@@ -93,7 +95,7 @@ namespace Logger
                     { "type", "object" },
                     { "unevaluatedProperties", false },
                     { "title", "Logging settings" },
-                    { "description", "Default state for different log levels." },
+                    { "description", "Default state for different loggers." },
                     { "properties", __get_properties__() }
                 };
             }
