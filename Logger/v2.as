@@ -425,8 +425,15 @@ namespace Logger
         }
     }
 
+    dictionary@ __AllLoggers__;
     /** @brief All currently registered Logger instances, indexed by name. */
-    dictionary g_Loggers;
+    dictionary@ LoggerDictionary() {
+        if( __AllLoggers__ is null )
+            @__AllLoggers__ = {};
+        return __AllLoggers__;
+        // Apparently being a handle fixes the undefined error.
+        // (Creating loggers before the module is fully compiled.)
+    }
 
     /**
      * @brief Deletes every logger from the registry.
@@ -435,7 +442,7 @@ namespace Logger
      */
     void Shutdown()
     {
-        g_Loggers.deleteAll();
+        LoggerDictionary().deleteAll();
     }
 
     /**
@@ -448,11 +455,11 @@ namespace Logger
     {
         if( logger.name.IsEmpty() )
         {
-            g_Loggers.delete( "global" );
+            LoggerDictionary().delete( "global" );
         }
         else
         {
-            g_Loggers.delete( logger.name );
+            LoggerDictionary().delete( logger.name );
         }
     }
 
@@ -476,7 +483,7 @@ namespace Logger
             if( this.m_Current >= this.m_Names.length() )
                 return null;
 
-            return cast<Logger@>( g_Loggers[ this.m_Names[ this.m_Current++ ] ] );
+            return cast<Logger@>( LoggerDictionary()[ this.m_Names[ this.m_Current++ ] ] );
         };
 
         /**
@@ -495,7 +502,7 @@ namespace Logger
          */
         Iterator()
         {
-            @this.m_Names = g_Loggers.getKeys();
+            @this.m_Names = LoggerDictionary().getKeys();
             this.m_Current = 0;
         }
     }
@@ -538,9 +545,8 @@ namespace Logger
         }
 
         Logger@ logger;
-        g_Loggers.get( loggerName, @logger );
+        LoggerDictionary().get( loggerName, @logger );
         return logger;
-//        return cast<Logger@>( g_Loggers[ loggerName ] );
     }
 
     /**
@@ -577,10 +583,10 @@ namespace Logger
         Logger@ logger;
         string labelName = ( loggerName.IsEmpty() ? "global" : loggerName );
 
-        if( !g_Loggers.get( labelName, @logger ) || logger is null )
+        if( !LoggerDictionary().get( labelName, @logger ) || logger is null )
         {
             @logger = Logger();
-            @g_Loggers[ labelName ] = logger;
+            @LoggerDictionary()[ labelName ] = logger;
         }
 
         if( !loggerName.IsEmpty() )
