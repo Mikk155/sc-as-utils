@@ -423,6 +423,70 @@ namespace Logger
         }
     }
 
+    final class Iterator
+    {
+        private
+            uint m_Current;
+
+        private
+            array<string>@ m_Names;
+
+        Logger@ Next()
+        {
+            string curName = this.m_Names[this.m_Current--];
+            return cast<Logger@>( g_Loggers[ curName ] );
+        };
+
+        bool Next( Logger@&out logger )
+        {
+            string curName = this.m_Names[this.m_Current--];
+            @logger = cast<Logger@>( g_Loggers[ curName ] );
+            return ( logger !is null );
+        };
+
+        Iterator()
+        {
+            @this.m_Names = g_Loggers.getKeys();
+            this.m_Current = 0;
+        }
+    }
+
+    void SetStateAll( bool state )
+    {
+        Iterator it;
+        Logger@ logger;
+        while( it.Next( logger ) )
+        {
+            logger.SetActive( state );
+        }
+    }
+
+    void EnableAll()
+    {
+        SetStateAll( true );
+    }
+
+    void DisableAll()
+    {
+        SetStateAll( false );
+    }
+
+    void SetState( Logger@ logger, bool state )
+    {
+        if( logger !is null )
+            logger.SetActive( state );
+    }
+
+    void Enable( Logger@ logger )
+    {
+        SetState( logger, true );
+    }
+
+    void Disable( Logger@ logger )
+    {
+        SetState( logger, false );
+    }
+
     /**
      * @brief Gets a registered logger by name.
      * @param loggerName Name to search for.
