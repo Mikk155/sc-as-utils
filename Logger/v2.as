@@ -17,7 +17,7 @@ namespace Logger
      * The callback is invoked by Logger::Level::print after the message has
      * been formatted. The message includes a trailing newline by default.
      */
-    funcdef void PrintCallback( const string&in, const Level&in );
+    funcdef bool PrintCallback( string&in, const Level&in );
 
     /**
      * @brief Global options used by every logger and level.
@@ -29,7 +29,7 @@ namespace Logger
      * @code
      * Logger::Config
      *     .SetCallback(
-     *         function( const string&in message, const Logger::Level&in level ) {
+     *         function( string&in message, const Logger::Level&in level ) {
      *             g_Game.AlertMessage( at_console, message );
      *         }
      *     )
@@ -233,7 +233,7 @@ namespace Logger
          * @param kwargs Values substituted into `{name}` placeholders.
          * @return The formatted message, or false when strict validation fails.
          */
-        string format( const string&in message, const string[]@ args = null, const dictionary@ kwargs = null ) const
+        string format( string&in message, const string[]@ args = null, const dictionary@ kwargs = null ) const
         {
             string buffer;
 
@@ -332,38 +332,60 @@ namespace Logger
         }
 
         /**
-         * @brief Formats and sends a message when this level is active.
-         * @param message Message template.
-         * @param args Values substituted into `{}` placeholders.
-         * @param kwargs Values substituted into `{name}` placeholders.
+         * @brief sends a message when this level is active.
+         * @param message Message.
          * @return True when the message was sent; otherwise false.
          */
-        bool print( const string&in message, const string[]@ args = null, const dictionary@ kwargs = null ) const
+        bool printf( string&in message ) const
         {
             if( !this.active )
             {
                 return false;
             }
 
-            string formatedString = format( message, args, kwargs );
-
             if( this.Callback !is null )
             {
-                this.Callback( formatedString, this );
+                if( !this.Callback( message, this ) )
+                {
+                    return false;
+                }
             }
 
             Logger@ ownerLogger;
             if( ( @ownerLogger = this.m_owner.get() ) !is null && ownerLogger.Callback !is null )
             {
-                ownerLogger.Callback( formatedString, this );
+                if( !ownerLogger.Callback( message, this ) )
+                {
+                    return false;
+                }
             }
 
             if( Config.Callback !is null )
             {
-                Config.Callback( formatedString, this );
+                if( !Config.Callback( message, this ) )
+                {
+                    return false;
+                }
             }
 
             return true;
+        }
+
+        /**
+         * @brief Formats and sends a message when this level is active.
+         * @param message Message template.
+         * @param args Values substituted into `{}` placeholders.
+         * @param kwargs Values substituted into `{name}` placeholders.
+         * @return True when the message was sent; otherwise false.
+         */
+        bool print( string&in message, const string[]@ args = null, const dictionary@ kwargs = null ) const
+        {
+            if( !this.active )
+            {
+                return false;
+            }
+
+            return this.printf( this.format( message, args, kwargs ) );
         }
 
         /**
@@ -373,7 +395,7 @@ namespace Logger
          * @param kwargs Values substituted into `{name}` placeholders.
          * @return True when the message was sent; otherwise false.
          */
-        bool opCall( const string&in message, const string[]@ args = null, const dictionary@ kwargs = null ) const
+        bool opCall( string&in message, const string[]@ args = null, const dictionary@ kwargs = null ) const
         {
             return this.print( message, args, kwargs );
         }
