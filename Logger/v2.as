@@ -404,6 +404,25 @@ namespace Logger
     /** @brief All currently registered Logger instances, indexed by name. */
     dictionary g_Loggers;
 
+    // Delete all loggers. this wont delete loggers that are kept by reference other than weakref.
+    void Shutdown()
+    {
+        g_Loggers.deleteAll();
+    }
+
+    // Delete all loggers. this wont delete loggers that are kept by reference other than weakref.
+    void Shutdown( Logger@ logger )
+    {
+        if( logger.name.IsEmpty() )
+        {
+            g_Loggers.delete( "global" );
+        }
+        else
+        {
+            g_Loggers.delete( logger.name );
+        }
+    }
+
     /**
      * @brief Gets a registered logger by name.
      * @param loggerName Name to search for.
@@ -522,6 +541,11 @@ class Logger : Logger::Base
     Logger()
     {
         this.active = true;
+    }
+
+    void shutdown()
+    {
+        Logger::Shutdown(this);
     }
 
     /**
