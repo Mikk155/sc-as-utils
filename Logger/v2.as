@@ -131,20 +131,24 @@ namespace Logger
     /** @brief Common name and activation state shared by loggers and levels. */
     abstract class Base
     {
+        // Additional callback when printing.
+        // the Level callback is called first, then the Logger callback and then the global callback.
+        PrintCallback@ Callback;
+
         protected
             /** @brief Internal name used in formatted messages. */
-            string m_Name;
+            string m_name;
 
         /** @brief Gets the name of this object. */
-        const string& get_Name() const property final
+        const string& get_name() const property final
         {
-            return this.m_Name;
+            return this.m_name;
         }
 
         /** @brief Sets the name of this object. */
-        void set_Name( const string&in value ) property
+        void set_name( const string&in value ) property
         {
-            this.m_Name = value;
+            this.m_name = value;
         }
 
         protected
@@ -178,18 +182,18 @@ namespace Logger
 
         protected
             /** @brief Logger that owns this level. */
-            weakref<Logger> m_Owner;
+            weakref<Logger> m_owner;
 
         /** @brief Gets the logger that owns this level. */
-        const Logger@ get_Owner() const property
+        const Logger@ get_owner() const property
         {
-            return this.m_Owner.get();
+            return this.m_owner.get();
         }
 
         /** @brief Whether both this level and its owner are active. */
         const bool get_active() const property override
         {
-            return ( Base::get_active() && this.Owner !is null && this.Owner.active );
+            return ( Base::get_active() && this.owner !is null && this.owner.active );
         }
 
         /**
@@ -202,9 +206,9 @@ namespace Logger
         Level( const string&in levelName, Logger@ ownerLogger, bool startActive = false, const string&in messageName = String::EMPTY_STRING )
         {
             this.active = startActive;
-            this.Name = levelName;
+            this.name = levelName;
 
-            this.m_Owner.opHndlAssign( ownerLogger );
+            this.m_owner.opHndlAssign( ownerLogger );
 
             weakref<Level> thisReference(this);
             ownerLogger.__Levels__.insertLast( thisReference );
@@ -230,7 +234,7 @@ namespace Logger
         {
             string buffer;
 
-            const Logger@ owner = this.Owner;
+            const Logger@ owner = this.owner;
 
             if( Config.PrefixWithGlobalName && !Config.GlobalName.IsEmpty() )
             {
@@ -239,10 +243,10 @@ namespace Logger
                 buffer.opAddAssign( "] " );
             }
 
-            if( !owner.Name.IsEmpty() )
+            if( !owner.name.IsEmpty() )
             {
                 buffer.opAddAssign( '[' );
-                buffer.opAddAssign( owner.Name );
+                buffer.opAddAssign( owner.name );
                 buffer.opAddAssign( "] " );
             }
 
@@ -338,7 +342,20 @@ namespace Logger
                 return false;
             }
 
-            Config.Callback( format( message, args, kwargs ), this );
+            string formatedString = format( message, args, kwargs );
+
+            if( this.Callback !is null )
+            {
+                this.Callback( formatedString, this );
+            }
+
+            Logger@ ownerLogger;
+            if( ( @ownerLogger = this.m_owner.get() ) !is null && ownerLogger.Callback !is null )
+            {
+                ownerLogger.Callback( formatedString, this );
+            }
+
+            Config.Callback( formatedString, this );
 
             return true;
         }
@@ -356,88 +373,73 @@ namespace Logger
         }
     }
 
-    /** @brief Weak references to all currently registered Logger instances. */
-    array<weakref<Logger>> g_LoggerRefs;
-
-    /**
-     * @brief Finds a logger by name and returns a weak reference.
-     * @param loggerName Name to search for.
-     * @param logger Receives the matching weak reference.
-     * @return True when a matching live logger is found.
-     */
-    bool Find( const string&in loggerName, weakref<Logger>&out logger )
-    {
-        const uint length = g_LoggerRefs.length();
-
-        for( uint ui = 0; ui < length; ui++ )
-        {
-            logger = g_LoggerRefs[ui];
-
-            if( logger.get() !is null && loggerName == logger.get().Name )
-                return true;
-        }
-        logger.opHndlAssign(null);
-        return false;
-    }
-
-    /**
-     * @brief Finds a logger by name and returns a handle.
-     * @param loggerName Name to search for.
-     * @param logger Receives the matching logger handle.
-     * @return True when a matching live logger is found.
-     */
-    bool Find( const string&in loggerName, Logger@&out logger )
-    {
-        const uint length = g_LoggerRefs.length();
-
-        for( uint ui = 0; ui < length; ui++ )
-        {
-            @logger = g_LoggerRefs[ui].get();
-
-            if( logger !is null && loggerName == logger.Name )
-                return true;
-        }
-        @logger = null;
-        return false;
-    }
-
-    /**
-     * @brief Finds a logger by name.
-     * @param loggerName Name to search for.
-     * @return The matching logger, or null when it does not exist.
-     */
-    const Logger@ Find( const string&in loggerName )
-    {
-        Logger@ logger;
-        Find( loggerName, logger );
-        return logger;
-    }
+    /** @brief All currently registered Logger instances. */
+    dictionary g_Loggers;
 
     /**
      * @brief Alias for Find(const string&in).
      * @param loggerName Name to search for.
      * @return The matching logger, or null when it does not exist.
      */
-    const Logger@ First( const string&in loggerName )
+    Logger@ First( const string&in loggerName )
     {
-        return Find( loggerName );
-    }
-
-    /**
-     * @brief Finds a logger or creates a named default logger.
-     * @param loggerName Name to search for or assign to the new logger.
-     * @return The existing logger or a newly created logger.
-     */
-    const Logger@ FirstOrDefault( const string&in loggerName )
-    {
-        const Logger@ logger = Find( loggerName );
-
-        if( logger is null )
+        if( loggerName.IsEmpty() )
         {
-            return Logger().SetName( loggerName );
+            return First( "global" );
         }
 
+        Logger@ logger;
+        g_Loggers.get( loggerName, @logger );
         return logger;
+//        return cast<Logger@>( g_Loggers[ loggerName ] );
+    }
+
+    weakref<Logger> Find( const string&in loggerName )
+    {
+        weakref<Logger> loggerRef( First( loggerName ) );
+        return loggerRef;
+    }
+
+    bool Find( const string&in loggerName, weakref<Logger>&out logger )
+    {
+        logger = Find( loggerName );
+        return ( logger.get() !is null );
+    }
+
+    weakref<Logger> FirstOrDefault( string&in loggerName = String::EMPTY_STRING )
+    {
+        Logger@ logger;
+        string labelName = ( loggerName.IsEmpty() ? "global" : loggerName );
+
+        if( !g_Loggers.get( labelName, @logger ) || logger is null )
+        {
+            @logger = Logger();
+            @g_Loggers[ labelName ] = logger;
+        }
+
+        if( !loggerName.IsEmpty() )
+        {
+            logger.SetName( loggerName );
+        }
+
+        weakref<Logger> loggerRef( logger );
+
+        return loggerRef;
+    }
+
+    weakref<Logger> Shared( string&in loggerName )
+    {
+        return FirstOrDefault( loggerName );
+    }
+
+    weakref<Logger> Global()
+    {
+        return FirstOrDefault( String::EMPTY_STRING );
+    }
+
+    weakref<Logger> Register( const string&in name = String::EMPTY_STRING )
+    {
+        return FirstOrDefault( name );
     }
 }
 
@@ -449,46 +451,6 @@ namespace Logger
  */
 class Logger : Logger::Base
 {
-    /**
-     * @brief Creates and registers a logger.
-     * @param name Optional name included in formatted messages.
-     * @param startActive Initial activation state for the logger.
-     */
-    Logger( const string&in name = String::EMPTY_STRING, bool startActive = true )
-    {
-        this.Name = name;
-        this.active = startActive;
-        weakref<Logger::Logger> loggerReference(this);
-        Logger::g_LoggerRefs.insertLast( loggerReference );
-    }
-
-    /** @brief Unregisters this logger and removes stale references. */
-    ~Logger()
-    {
-        const uint length = Logger::g_LoggerRefs.length();
-
-        for( uint ui = length -1; ui >= 0; ui-- )
-        {
-            Logger@ logger = Logger::g_LoggerRefs[ui].get();
-
-            if( logger is null || logger is this )
-            {
-                Logger::g_LoggerRefs.removeAt(ui);
-            }
-        }
-    }
-
-    /**
-     * @brief Gets a weak reference to this logger.
-     * @return A weak reference resolved by the logger name.
-     */
-    weakref<Logger> get_WeakReference() const property
-    {
-        weakref<Logger> loggerRef;
-        Logger::Find( this.Name, loggerRef );
-        return loggerRef;
-    }
-
     /** @brief Weak references to the levels owned by this logger. */
     array<weakref<Logger::Level>> __Levels__;
 
@@ -505,7 +467,7 @@ class Logger : Logger::Base
         {
             Logger::Level@ level = this.__Levels__[ui].get();
 
-            if( level !is null && level.Name == levelName )
+            if( level !is null && level.name == levelName )
                 return level;
         }
         return null;
@@ -528,7 +490,7 @@ class Logger : Logger::Base
      */
     Logger@ SetName( const string&in name )
     {
-        this.Name = name;
+        this.name = name;
         return this;
     }
 

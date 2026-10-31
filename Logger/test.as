@@ -1,4 +1,4 @@
-#include "v1"
+#include "v2"
 
 void PluginInit()
 {
@@ -18,10 +18,14 @@ void StupidSpam()
         )
         .SetGlobalName( g_Module.GetModuleName() );
 
-    Logger logger(true);
+    weakref<Logger> logger_Ref = Logger::Global();
+    Logger@ logger = logger_Ref.get();
 
-    logger.error( "single message" );
-    logger.error( "message with *args: {} {}!", { "Hello", "world" } );
-    logger.error( "message with *kwargs: {h} {w}!", null, { { "h", "Hello" }, { "w", "world" } } );
-    logger.error( "message with *args & *kwargs: {} {w}{}", { "Hello", "!" }, { { "w", "world" } } );
+    if( logger !is null )
+    {
+        logger.error( "single message" );
+        logger.error( "message with *args: {} {}!", { "Hello", "world" } );
+        logger.error( "message with *kwargs: {h} {w}!", null, { { "h", "Hello" }, { "w", "world" } } );
+        logger.error( "message with *args & *kwargs: {} {w}{}", { "Hello", "!" }, { { "w", "world" } } );
+    }
 }
