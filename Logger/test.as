@@ -1,5 +1,5 @@
 #include "v2"
-
+#include "v2/time"
 void PluginInit()
 {
     g_Module.ScriptInfo.SetAuthor( "Mikk155" );
@@ -12,8 +12,10 @@ void StupidSpam()
     // Configure
     Logger::Config
         .SetCallback(
-            function( const string&in message, const Logger::Level&in level ) {
+            function( string&in message, const Logger::Level&in level ) {
+                Logger::time::format( message, message );
                 g_Game.AlertMessage( at_console, message );
+                return true;
             }
         )
         .SetGlobalName( g_Module.GetModuleName() );
