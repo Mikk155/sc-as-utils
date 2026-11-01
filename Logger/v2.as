@@ -255,7 +255,7 @@ namespace Logger
          * @param message Message template.
          * @param args Values substituted into `{}` placeholders.
          * @param kwargs Values substituted into `{name}` placeholders.
-         * @return The formatted message, or false when strict validation fails.
+         * @return The formatted message, or String::EMPTY_STRING when strict validation fails.
          */
         string format( string&in message, const string[]@ args = null, const dictionary@ kwargs = null ) const
         {
@@ -296,7 +296,7 @@ namespace Logger
                         {
                             this.opCall( "ERROR got {} arguments but only {} were defined in message: {}", { length, ui, message } );
                             int[]a(0);a[1];
-                            return false;
+                            return String::EMPTY_STRING;
                         }
                         break;
                     }
@@ -323,7 +323,7 @@ namespace Logger
                         {
                             this.opCall( "ERROR got {} key word but is not defined in message: {}", { keyword, message } );
                             int[]a(0);a[1];
-                            return false;
+                            return String::EMPTY_STRING;
                         }
                         continue;
                     }
@@ -336,7 +336,7 @@ namespace Logger
                         {
                             this.opCall( "ERROR got empty/non-string key word value in message: {}", { keyword, message } );
                             int[]a(0);a[1];
-                            return false;
+                            return String::EMPTY_STRING;
                         }
                     }
 
@@ -362,7 +362,7 @@ namespace Logger
          */
         bool printf( string&in message ) const
         {
-            if( !this.active )
+            if( !this.active || message.IsEmpty() )
             {
                 return false;
             }
