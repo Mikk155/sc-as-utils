@@ -35,24 +35,24 @@ namespace Logger
     namespace time
     {
         /** @brief Date and time format used for log message prefixes. */
-        string date_format = "%d/%m/%Y %H:%M:%S";
+        string date_format = "%d/%m/%Y %H:%M:%S ";
 
         /**
          * @brief Prefixes a message with the current local date and time.
          * @param strIn Message to format.
          * @param strOut Receives the formatted message.
-         *
-         * If the date cannot be formatted, the original message is returned
-         * without a timestamp prefix.
          */
         void format( const string&in strIn, string&out strOut )
         {
             strOut = "";
 
-            string strFormated;
-            if( DateTime().Format( strFormated, date_format ) > 0 )
+            if( date_format.Find( "%f" ) != String::INVALID_INDEX )
             {
-                strOut = "[" + strFormated + "] ";
+                DateTime().Format( strOut, date_format.Replace( "%f", string( int( ( g_Engine.time - Math.Floor( g_Engine.time ) ) * 1000 ) ).SubString( 0, 3 ) ) );
+            }
+            else
+            {
+                DateTime().Format( strOut, date_format );
             }
 
             strOut.opAddAssign( strIn );
