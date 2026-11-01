@@ -23,6 +23,7 @@
 **/
 
 #include "Entity/core"
+#include "Logger/core"
 #include "meta_api/core"
 #include "Player/core"
 #include "Server/core"
@@ -32,5 +33,5 @@
 
 namespace mikk155
 {
-    const SemanticVersion Version( 1, 0, 0 );
+    const SemanticVersion Version( 1, 1, 0 );
 }

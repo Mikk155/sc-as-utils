@@ -1,0 +1,24 @@
+
+# Copy these steps into a GitHub Actions workflow.
+# The repository stores this submodule at scripts/mikk155.
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Uninstall unused packages
+        run: python scripts/mikk155/tools/main.py -source scripts/maps/bts_rc/main.as
