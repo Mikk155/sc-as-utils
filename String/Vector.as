@@ -49,15 +49,29 @@ namespace String
      */
     string from_Vector( const Vector&in input, const char&in delimiter = ' ', bool makeRound = false )
     {
+        string strDelimiter = delimiter;
+
         string output;
         if( makeRound )
         {
-            snprintf( output, "%1%2%3%4%5", int(input.x), delimiter, int(input.y), delimiter, int(input.z) );
+            snprintf( output, "%1%2%3%4%5", int(input.x), strDelimiter, int(input.y), strDelimiter, int(input.z) );
         }
         else
         {
-            snprintf( output, "%1%2%3%4%5", input.x, delimiter, input.y, delimiter, input.z );
+            snprintf( output, "%1%2%3%4%5", input.x, strDelimiter, input.y, strDelimiter, input.z );
         }
         return output;
+    }
+
+    /**
+     * Formats a three-dimensional vector as three components separated by a character.
+     *
+     * @param input Vector whose x, y, and z components are formatted.
+     * @param delimiter Character placed between adjacent components. Defaults to a space.
+     * @param makeRound When true makes a integer conversion on each vector component
+     */
+    string from_Vector( const Vector&in input, bool makeRound, const char&in delimiter = ' ' )
+    {
+        return from_Vector( input, delimiter, makeRound );
     }
 }
