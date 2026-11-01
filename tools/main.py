@@ -13,7 +13,7 @@ class IncludeError( ValueError ):
 
 parser: argparse.ArgumentParser;
 
-SUBMODULE_URL: str = "https://github.com/Mikk155/sc-as-utils";
+SUBMODULE_URL: str = "https://github.com/Mikk155/sc-as-utils/blob/main";
 
 def InlineList( value: str ) -> list[str]:
 
