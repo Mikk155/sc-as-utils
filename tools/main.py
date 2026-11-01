@@ -227,7 +227,7 @@ def InlineSources(
     inlineFiles: set[Path],
     workspace: Path,
     dryRun: bool,
-) -> None:
+) -> set[Path]:
 
     reachableSources: list[Path] = [
         path for path in reachableFiles if not path.is_relative_to( submodule )
@@ -251,6 +251,74 @@ def InlineSources(
 
         if not dryRun:
             reachableSource.write_text( rendered, encoding="utf-8", newline="" );
+
+    return contained;
+
+def CleanupSubmodule(
+    submodule: Path,
+    dependencies: set[Path],
+    contained: set[Path],
+    candidates: set[Path],
+    workspace: Path,
+    dryRun: bool,
+) -> int:
+
+    removeFiles: set[Path] = ( candidates - dependencies ) | contained;
+
+    removeFiles.update(
+        path for path in (
+            submodule / ".gitignore",
+            submodule / ".gitattributes",
+            submodule / "AUTHORS.md",
+            submodule / "CHANGELOG.md",
+            submodule / "Doxyfile",
+        )
+        if path.exists()
+    );
+
+    tools: Path = submodule / "tools";
+    if tools.exists():
+        removeFiles.update( path for path in tools.rglob( "*" ) if path.is_file() );
+
+    if not ( dependencies - contained ):
+        removeFiles.update(
+            path for path in (
+                submodule / "LICENSE",
+                submodule / "README.md",
+            )
+            if path.exists()
+        );
+
+    for path in sorted( removeFiles, key=lambda item: len( item.parts ), reverse=True ):
+
+        print( f"Remove: {path.relative_to( workspace )}" );
+
+        if not dryRun and path.exists():
+            path.unlink();
+
+    emptyDirectories: list[Path] = sorted(
+        (
+            path for path in submodule.rglob( "*" )
+            if path.is_dir() and path.name != ".git"
+        ),
+        key=lambda item: len( item.parts ),
+        reverse=True,
+    );
+
+    for path in emptyDirectories:
+
+        if any( path.iterdir() ):
+            continue;
+
+        print( f"Remove directory: {path.relative_to( workspace )}" );
+
+        if not dryRun:
+            path.rmdir();
+
+    if not any( submodule.rglob( "*.as" ) ):
+        print( f"Submodule has no AngelScript files: {submodule.relative_to( workspace )}" );
+
+    return len( removeFiles );
 
 
 def RenderContainer(
@@ -363,6 +431,8 @@ def Main() -> int:
 
         unused: list[Path] = sorted( candidates - dependencies );
 
+        contained: set[Path] = set();
+
         if arguments.inline_all or arguments.inline:
 
             inlineFiles: set[Path] = dependencies;
@@ -370,7 +440,7 @@ def Main() -> int:
             if arguments.inline:
                 inlineFiles = ResolveInlineFiles( arguments.inline, submodule );
 
-            InlineSources(
+            contained = InlineSources(
                 reachableFiles,
                 submodule,
                 reInclude,
@@ -379,25 +449,14 @@ def Main() -> int:
                 arguments.dry_run,
             );
 
-        else:
-
-            unused.append( Path( submodule / ".gitignore" ) );
-            unused.append( Path( submodule / ".gitattributes" ) );
-            unused.append( Path( submodule / "AUTHORS.md" ) );
-            unused.append( Path( submodule / "CHANGELOG.md" ) );
-            unused.append( Path( submodule / "DoxyFile" ) );
-            unused.append( Path( submodule / "tools" ) );
-
-            for path in unused:
-
-                print( f"Remove: {path.relative_to( workspace )}" );
-
-                if not arguments.dry_run:
-
-                    if path.is_dir():
-                        path.rmdir();
-                    else:
-                        path.unlink();
+        CleanupSubmodule(
+            submodule,
+            dependencies,
+            contained,
+            candidates,
+            workspace,
+            arguments.dry_run,
+        );
 
         print( f"Included files: {len( dependencies )}" );
         print( f"Unused files: {len( unused )}" );
