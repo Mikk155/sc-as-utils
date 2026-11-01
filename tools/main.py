@@ -11,7 +11,10 @@ from pathlib import Path;
 class IncludeError( ValueError ):
     """Raised when an include cannot be resolved."""
 
+global parser;
 parser: argparse.ArgumentParser;
+global arguments;
+arguments: argparse.Namespace;
 
 SUBMODULE_URL: str = "https://github.com/Mikk155/sc-as-utils/blob/main";
 
@@ -276,21 +279,25 @@ def InlineSources(
     ];
     contained: set[Path] = set();
 
+    inlinedFiles: list[str] = [];
+
     for reachableSource in reachableSources:
 
-        rendered: str = RenderContainer(
+        rendered, inlinedFiles = RenderContainer(
             reachableSource,
             submodule,
             reInclude,
             contained,
             inlineFiles,
+            inlinedFiles,
             protectedFiles,
         );
 
         if rendered == reachableSource.read_text( encoding="utf-8" ):
             continue;
 
-        print( f"Inline: {reachableSource.relative_to( workspace )}" );
+        for inlinedFile in inlinedFiles:
+            print( f"Inline {inlinedFile.relative_to( submodule )} into {reachableSource.relative_to( workspace )}" );
 
         if not dryRun:
             reachableSource.write_text( rendered, encoding="utf-8", newline="" );
@@ -334,7 +341,8 @@ def CleanupSubmodule(
 
     for path in sorted( removeFiles, key=lambda item: len( item.parts ), reverse=True ):
 
-        print( f"Remove: {path.relative_to( workspace )}" );
+        if arguments.verbose:
+            print( f"Remove: {path.relative_to( workspace )}" );
 
         if not dryRun and path.exists():
             path.unlink();
@@ -353,7 +361,8 @@ def CleanupSubmodule(
         if any( path.iterdir() ):
             continue;
 
-        print( f"Remove directory: {path.relative_to( workspace )}" );
+        if arguments.verbose:
+            print( f"Remove directory: {path.relative_to( workspace )}" );
 
         if not dryRun:
             path.rmdir();
@@ -370,9 +379,10 @@ def RenderContainer(
     reInclude: re.Pattern,
     contained: set[Path],
     inlineFiles: set[Path],
+    inlinedFiles: list[Path],
     protectedFiles: set[Path],
     stack: tuple[Path, ...] = (),
-) -> str:
+) -> tuple[str, list[Path]]:
 
     source = source.resolve();
 
@@ -415,19 +425,23 @@ def RenderContainer(
                 continue;
 
             contained.add( target );
-            renderedTarget: str = RenderContainer(
+            renderedTarget, inlinedFiles = RenderContainer(
                 target,
                 submodule,
                 reInclude,
                 contained,
                 inlineFiles,
+                inlinedFiles,
                 protectedFiles,
                 ( *stack, source ),
-            ).strip();
+            );
+            renderedTarget.strip();
 
             if not renderedTarget:
                 contained.remove( target );
                 continue;
+
+            inlinedFiles.append( target );
 
             output.append(
                 SubmoduleMarker( "Start", target, submodule )
@@ -439,11 +453,10 @@ def RenderContainer(
         else:
             output.append( line );
 
-    return "".join( output );
+    return "".join( output ), inlinedFiles;
 
 def Main() -> int:
 
-    arguments: argparse.Namespace = parser.parse_args();
     workspace: Path = Path.cwd().resolve();
 
     submodule: Path = Path( Path( __file__ ).resolve().parent.parent ).resolve();
@@ -563,6 +576,14 @@ if __name__ == "__main__":
             action="store_true",
             help="Format submodule files.",
         );
+
+        parser.add_argument(
+            "--verbose",
+            action="store_true",
+            help="Print more messages that are not really interesting.",
+        );
+
+        arguments: argparse.Namespace = parser.parse_args();
 
         result: int = Main();
 
