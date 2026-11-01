@@ -1,4 +1,4 @@
-"""Trim and optionally inline the mikk155 AngelScript submodule."""
+﻿"""Trim and optionally inline the mikk155 AngelScript submodule."""
 
 from __future__ import annotations;
 
@@ -203,6 +203,47 @@ def CollectDependencies( source: Path, submodule: Path, reInclude: re.Pattern ) 
 
     return visited, includedSubmoduleFiles;
 
+def CollectProtectedDependencies(
+    source: Path,
+    submodule: Path,
+    reInclude: re.Pattern,
+    inlineFiles: set[Path],
+) -> set[Path]:
+
+    visited: set[Path] = set();
+    protected: set[Path] = set();
+
+    def visit( current: Path ) -> None:
+
+        current = current.resolve();
+
+        if current in visited:
+            return;
+
+        visited.add( current );
+
+        for lineNumber, include in IncludesIn( current, reInclude ):
+
+            try:
+                target: Path = IncludeTarget( current, include );
+            except IncludeError as error:
+                raise IncludeError( f"{error} (line {lineNumber})" ) from error;
+
+            if target.is_relative_to( submodule ):
+
+                target = target.resolve();
+
+                if target in inlineFiles:
+                    continue;
+
+                protected.add( target );
+
+            visit( target );
+
+    visit( source );
+
+    return protected;
+
 def ResolveInlineFiles( names: list[str], submodule: Path ) -> set[Path]:
 
     resolved: set[Path] = set();
@@ -225,6 +266,7 @@ def InlineSources(
     submodule: Path,
     reInclude: re.Pattern,
     inlineFiles: set[Path],
+    protectedFiles: set[Path],
     workspace: Path,
     dryRun: bool,
 ) -> set[Path]:
@@ -242,6 +284,7 @@ def InlineSources(
             reInclude,
             contained,
             inlineFiles,
+            protectedFiles,
         );
 
         if rendered == reachableSource.read_text( encoding="utf-8" ):
@@ -327,6 +370,7 @@ def RenderContainer(
     reInclude: re.Pattern,
     contained: set[Path],
     inlineFiles: set[Path],
+    protectedFiles: set[Path],
     stack: tuple[Path, ...] = (),
 ) -> str:
 
@@ -357,7 +401,13 @@ def RenderContainer(
         if target.is_relative_to( submodule ):
             target = target.resolve();
 
-            if not source.is_relative_to( submodule ) and target not in inlineFiles:
+            if source.is_relative_to( submodule ) and target in protectedFiles:
+                continue;
+
+            if (
+                not source.is_relative_to( submodule )
+                and target not in inlineFiles
+            ):
                 output.append( line );
                 continue;
 
@@ -371,6 +421,7 @@ def RenderContainer(
                 reInclude,
                 contained,
                 inlineFiles,
+                protectedFiles,
                 ( *stack, source ),
             ).strip();
 
@@ -440,11 +491,19 @@ def Main() -> int:
             if arguments.inline:
                 inlineFiles = ResolveInlineFiles( arguments.inline, submodule );
 
+            protectedFiles: set[Path] = CollectProtectedDependencies(
+                source,
+                submodule,
+                reInclude,
+                inlineFiles,
+            );
+
             contained = InlineSources(
                 reachableFiles,
                 submodule,
                 reInclude,
                 inlineFiles,
+                protectedFiles,
                 workspace,
                 arguments.dry_run,
             );
