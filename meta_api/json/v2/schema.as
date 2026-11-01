@@ -63,7 +63,7 @@ namespace meta_api
                         if( !schema.Contains( "type" ) )
                         {
                             this.errors++;
-                            g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::V2 ) ) + "%1 expected \"type\" at schema but is undefined!\n", name );
+                            GetLogger( Version::V2 ).error( "{} expected \"type\" at schema but is undefined!\n", { name } );
                             return false;
                         }
 
@@ -74,7 +74,7 @@ namespace meta_api
                         if( expectedTypeString.IsEmpty() )
                         {
                             this.errors++;
-                            g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::V2 ) ) + "Unexpected empty type at schema!\n" );
+                            GetLogger( Version::V2 ).error( "Unexpected empty type at schema!\n" );
                             return false;
                         }
 
@@ -103,7 +103,7 @@ namespace meta_api
                             break;
                             default:
                                 this.errors++;
-                                g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::V2 ) ) + "schema unknown \"type\" %1\n", expectedTypeString );
+                                GetLogger( Version::V2 ).error( "schema unknown \"type\" {}\n", { expectedTypeString } );
                                 if( true )
                                     return false;
                             break;
@@ -113,7 +113,7 @@ namespace meta_api
                             return true;
 
                         this.errors++;
-                        g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::V2 ) ) + "%1 Expected %2 got %3\n", name, expectedTypeString, Type::ToString(obj.Type) );
+                        GetLogger( Version::V2 ).error( "{} Expected {} got {}\n", { name, expectedTypeString, Type::ToString(obj.Type) } );
 
                         if( !this.strict )
                         {
@@ -158,7 +158,7 @@ namespace meta_api
                                     if( schema.Get( "minItems", uiTemp ) && obj.Length() < uiTemp )
                                     {
                                         this.errors++;
-                                        g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::V2 ) ) + "%1 array has less items than minimum expected %2 or more. got %3\n", name, uiTemp, obj.Length() );
+                                        GetLogger( Version::V2 ).error( "{} array has less items than minimum expected {} or more. got {}\n", { name, uiTemp, obj.Length() } );
                                         if( this.strict )
                                             return false;
                                     }
@@ -166,7 +166,7 @@ namespace meta_api
                                     if( schema.Get( "maxItems", uiTemp ) && obj.Length() > uiTemp )
                                     {
                                         this.errors++;
-                                        g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::V2 ) ) + "%1 array has more items than maximum expected %2 or less. got %3\n", name, uiTemp, obj.Length() );
+                                        GetLogger( Version::V2 ).error( "{} array has more items than maximum expected {} or less. got {}\n", { name, uiTemp, obj.Length() } );
                                         if( this.strict )
                                             return false;
                                     }
@@ -204,7 +204,7 @@ namespace meta_api
                                             continue;
 
                                         this.errors++;
-                                        g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::V2 ) ) + "%1 got unevaluated property \"%2\" which is not allowed!\n", name, key );
+                                        GetLogger( Version::V2 ).error( "{} got unevaluated property \"{}\" which is not allowed!\n", { name, key } );
                                         if( this.strict )
                                             return false;
 
@@ -227,7 +227,7 @@ namespace meta_api
                                             if( !obj.Contains( key ) )
                                             {
                                                 this.errors++;
-                                                g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::V2 ) ) + "%1 missing required key \"%2\"\n", name, key );
+                                                GetLogger( Version::V2 ).error( "{} missing required key \"{}\"\n", { name, key } );
                                                 if( this.strict )
                                                     return false;
                                             }
@@ -269,7 +269,7 @@ namespace meta_api
                                     string childName;
                                     snprintf( childName, "%1->%2", name, pair.Name );
                                     if( debug )
-                                        g_Game.AlertMessage( at_console, GetLogPrefix( int( Version::V2 ) ) + "Validating %1\n", childName );
+                                        GetLogger( Version::V2 ).debug( "Validating {}\n", { childName } );
 
                                     bool result = this.Validate( childObj, pair, childName, defaultChild );
 
@@ -289,7 +289,7 @@ namespace meta_api
                                 {
                                     obj.opAssign(fTemp);
                                     this.errors++;
-                                    g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::V2 ) ) + "%1 value is lesser than minimum expected %2 or more. got %3\n", name, fTemp, fValue );
+                                    GetLogger( Version::V2 ).error( "{} value is lesser than minimum expected {} or more. got {}\n", { name, fTemp, fValue } );
                                     if( this.strict )
                                         return false;
                                 }
@@ -298,7 +298,7 @@ namespace meta_api
                                 {
                                     obj.opAssign(fTemp);
                                     this.errors++;
-                                    g_Game.AlertMessage( at_error, GetLogPrefix( int( Version::V2 ) ) + "%1 value is higher than maximum expected %2 or less. got %3\n", name, fTemp, fValue );
+                                    GetLogger( Version::V2 ).error( "{} value is higher than maximum expected {} or less. got {}\n", { name, fTemp, fValue } );
                                     if( this.strict )
                                         return false;
                                 }

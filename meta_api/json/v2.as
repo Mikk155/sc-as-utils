@@ -403,7 +403,7 @@ namespace meta_api
 
                     if( value is null )
                     {
-                        g_Game.AlertMessage( at_error, meta_api::json::GetLogPrefix( int( meta_api::json::Version::V2 ) ) + "Couldn't set null json value for key \"%1\"\n", keyName );
+                        GetLogger( meta_api::json::Version::V2 ).error( "Couldn't set null json value for key \"{}\"\n", { keyName } );
                         return @old;
                     }
 
@@ -741,13 +741,13 @@ namespace meta_api
                 {
                     if( this.Type != meta_api::json::Type::Array )
                     {
-                        g_Game.AlertMessage( at_error, meta_api::json::GetLogPrefix( int( meta_api::json::Version::V2 ) ) + "Couldn't Append to a json that is not an array!\n" );
+                        GetLogger( meta_api::json::Version::V2 ).error( "Couldn't Append to a json that is not an array!\n" );
                         return null;
                     }
 
                     if( value is null )
                     {
-                        g_Game.AlertMessage( at_error, meta_api::json::GetLogPrefix( int( meta_api::json::Version::V2 ) ) + "Couldn't Append a null json value!\n" );
+                        GetLogger( meta_api::json::Version::V2 ).error( "Couldn't Append a null json value!\n" );
                         return null;
                     }
 
@@ -769,7 +769,7 @@ namespace meta_api
                 {
                     if( index >= this.m_KeyNames.length() )
                     {
-                        g_Game.AlertMessage( at_error, meta_api::json::GetLogPrefix( int( meta_api::json::Version::V2 ) ) + "Index %1 is outside json length %2\n", index, this.m_KeyNames.length() );
+                        GetLogger( meta_api::json::Version::V2 ).error( "Index {} is outside json length {}\n", { index, this.m_KeyNames.length() } );
                         return null;
                     }
 
@@ -798,7 +798,7 @@ namespace meta_api
                 {
                     if( !this.is_structured() )
                     {
-                        g_Game.AlertMessage( at_error, meta_api::json::GetLogPrefix( int( meta_api::json::Version::V2 ) ) + "Can not Remove value at key %1 from a json that is not an object! type: %2\n", key, Type::ToString( this.Type ) );
+                        GetLogger( meta_api::json::Version::V2 ).error( "Can not Remove value at key {} from a json that is not an object! type: {}\n", { key, Type::ToString( this.Type ) } );
                     }
 
                     meta_api::json::v2::json@ value;
@@ -818,7 +818,7 @@ namespace meta_api
                 {
                     if( !this.is_structured() )
                     {
-                        g_Game.AlertMessage( at_error, meta_api::json::GetLogPrefix( int( meta_api::json::Version::V2 ) ) + "Can not Remove value at index %1 from a json that is not an object! type: %2\n", index, Type::ToString( this.Type ) );
+                        GetLogger( meta_api::json::Version::V2 ).error( "Can not Remove value at index {} from a json that is not an object! type: {}\n", { index, Type::ToString( this.Type ) } );
                     }
 
                     if( index < this.Length() )
@@ -954,7 +954,7 @@ namespace meta_api
                         {
                             if( debug )
                                 if( debug )
-                                    g_Game.AlertMessage( at_console, meta_api::json::GetLogPrefix( int( meta_api::json::Version::V2 ) ) + "Handle pointer serialization is not supported. storing as \"null\"\n" );
+                                    GetLogger( meta_api::json::Version::V2 ).debug( "Handle pointer serialization is not supported. storing as \"null\"\n" );
                             Serializer.KeyValue( key, "null", meta_api::json::Type::Null );
                             break;
                         }
