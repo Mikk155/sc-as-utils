@@ -1,3 +1,8 @@
+# 02/11/2026
+- Add Server::IsFacing and Entity::IsFacing due to CBasePlayer::IsFacing not working propertly.
+- Add Server::FreeEdicts to know when to not spawn entities.
+- Add Player::MultiTouch iterator to know which players are touching a entity.
+
 # 01/11/2026
 - Added tooling to format all AngelScript files with four-space indentation, normalized line endings, and MIT license headers.
 - Added complete and selective dependency inlining with JSON or comma-separated include lists.

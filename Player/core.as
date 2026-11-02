@@ -27,4 +27,6 @@
 #include "GetUniqueID"
 #include "FindPlayerBySteamID"
 #include "GiveItem"
+#include "IsFacing"
+#include "MultiTouch"
 #include "RespawnPlayer"

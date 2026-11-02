@@ -23,4 +23,5 @@
 **/
 
 #include "Create"
+#include "IsFacing"
 #include "Precache"

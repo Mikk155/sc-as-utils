@@ -342,7 +342,7 @@ def CleanupSubmodule(
     for path in sorted( removeFiles, key=lambda item: len( item.parts ), reverse=True ):
 
         if arguments.verbose:
-            print( f"Remove: {path.relative_to( workspace )}" );
+            print( f"Remove: {path.relative_to( submodule )}" );
 
         if not dryRun and path.exists():
             path.unlink();
@@ -362,13 +362,10 @@ def CleanupSubmodule(
             continue;
 
         if arguments.verbose:
-            print( f"Remove directory: {path.relative_to( workspace )}" );
+            print( f"Remove directory: {path.relative_to( submodule )}" );
 
         if not dryRun:
             path.rmdir();
-
-    if not any( submodule.rglob( "*.as" ) ):
-        print( f"Submodule has no AngelScript files: {submodule.relative_to( workspace )}" );
 
     return len( removeFiles );
 
@@ -465,6 +462,8 @@ def Main() -> int:
 
         licenseHeader: str = LicenseHeader( submodule );
 
+        formatedSources = 0;
+
         for source in sorted( submodule.rglob( "*.as" ) ):
 
             formatted: str = FormatScript( source, licenseHeader );
@@ -473,10 +472,14 @@ def Main() -> int:
             if formatted == current:
                 continue;
 
-            print( f"Format: {source.relative_to( workspace )}" );
+            print( f"Format: {source.relative_to( submodule )}" );
 
             if not arguments.dry_run:
                 source.write_text( formatted, encoding="utf-8", newline="" );
+
+            formatedSources += 1;
+
+        print( f"Formatted files: {formatedSources}" );
 
         return 0;
 
