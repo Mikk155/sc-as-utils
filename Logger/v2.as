@@ -68,7 +68,6 @@ namespace Logger
         /**
          * @brief Sets the destination callback for formatted messages.
          * @param callback Function that receives the message and its level.
-         * @return This configuration object.
          */
         Configuration@ SetCallback( PrintCallback@ callback ) {
             @this.Callback = callback;
@@ -86,10 +85,22 @@ namespace Logger
         /**
          * @brief Enables or disables validation of positional arguments.
          * @param sensitiveArguments Whether unmatched arguments are errors.
-         * @return This configuration object.
          */
         Configuration@ SetSensitiveArguments( bool sensitiveArguments ) {
             this.SensitiveArguments = sensitiveArguments;
+            return this;
+        }
+
+        /**
+         * @brief Default state for non-error/critical/warning levels
+         */
+        bool DefaultState = false;
+
+        /**
+         * @brief Set default state for logger levels other than critical/error/warning
+         */
+        Configuration@ SetDefaultState( bool defaultState ) {
+            this.DefaultState = defaultState;
             return this;
         }
 
@@ -102,7 +113,6 @@ namespace Logger
          * @brief Enables or disables validation of keyword arguments.
          * @param sensitiveKeywordArguments Whether invalid keyword arguments
          * are errors.
-         * @return This configuration object.
          */
         Configuration@ SetSensitiveKeywordArguments( bool sensitiveKeywordArguments ) {
             this.SensitiveKeywordArguments = sensitiveKeywordArguments;
@@ -115,7 +125,6 @@ namespace Logger
         /**
          * @brief Enables or disables the trailing newline in formatted output.
          * @param appendNewline Whether to append a newline when absent.
-         * @return This configuration object.
          */
         Configuration@ SetAppendNewline( bool appendNewline ) {
             this.AppendNewline = appendNewline;
@@ -128,7 +137,6 @@ namespace Logger
         /**
          * @brief Enables or disables the global-name message prefix.
          * @param prefixWithGlobalName Whether to include @ref GlobalName.
-         * @return This configuration object.
          */
         Configuration@ SetPrefixWithGlobalName( bool prefixWithGlobalName ) {
             this.PrefixWithGlobalName = prefixWithGlobalName;
@@ -141,7 +149,6 @@ namespace Logger
         /**
          * @brief Sets the global name used in message prefixes.
          * @param globalName Name to display before the logger name.
-         * @return This configuration object.
          */
         Configuration@ SetGlobalName( const string&in globalName ) {
             this.GlobalName = globalName;
@@ -423,6 +430,18 @@ namespace Logger
         {
             return this.print( message, args, kwargs );
         }
+
+        /**
+         * @brief Allows a level to be used as a callable logger.
+         * @param message Message template. following arguments are values substituted into `{}` placeholders.
+         * @return True when the message was sent; otherwise false.
+         */
+        bool opCall( string&in message, const string&in s1 ) const { return this.print( message, { s1 } ); }
+        bool opCall( string&in message, const string&in s1, const string&in s2 ) const { return this.print( message, { s1, s2 } ); }
+        bool opCall( string&in message, const string&in s1, const string&in s2, const string&in s3 ) const { return this.print( message, { s1, s2, s3 } ); }
+        bool opCall( string&in message, const string&in s1, const string&in s2, const string&in s3, const string&in s4 ) const { return this.print( message, { s1, s2, s3, s4 } ); }
+        bool opCall( string&in message, const string&in s1, const string&in s2, const string&in s3, const string&in s4, const string&in s5 ) const { return this.print( message, { s1, s2, s3, s4, s5 } ); }
+        bool opCall( string&in message, const string&in s1, const string&in s2, const string&in s3, const string&in s4, const string&in s5, const string&in s6 ) const { return this.print( message, { s1, s2, s3, s4, s5, s6 } ); }
     }
 
     dictionary@ __AllLoggers__;
@@ -778,21 +797,21 @@ class Logger : Logger::Base
     }
 
     /** @brief Trace level, disabled by default. */
-    protected Logger::Level m_trace( "trace", this, false );
+    protected Logger::Level m_trace( "trace", this, Logger::Config.DefaultState );
     /** @brief Gets the trace level. @return The trace level. */
     const Logger::Level& get_trace() const property {
         return this.m_trace;
     }
 
     /** @brief Debug level, disabled by default. */
-    protected Logger::Level m_debug( "debug", this, false );
+    protected Logger::Level m_debug( "debug", this, Logger::Config.DefaultState );
     /** @brief Gets the debug level. @return The debug level. */
     const Logger::Level& get_debug() const property {
         return this.m_debug;
     }
 
     /** @brief Info level, disabled by default. */
-    protected Logger::Level m_info( "info", this, false );
+    protected Logger::Level m_info( "info", this, Logger::Config.DefaultState );
     /** @brief Gets the info level. @return The info level. */
     const Logger::Level& get_info() const property {
         return this.m_info;
