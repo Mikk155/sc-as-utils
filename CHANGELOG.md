@@ -1,5 +1,6 @@
 # 05/11/2026
 - Added a case-sensitive option at String::from_bool
+- Added a new class Entity/Entity which is a wrapper to EHandle for ease of use
 
 # 02/11/2026
 - Add Server::IsFacing and Entity::IsFacing due to CBasePlayer::IsFacing not working propertly.

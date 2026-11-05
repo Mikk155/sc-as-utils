@@ -23,5 +23,6 @@
 **/
 
 #include "Create"
+#include "Entity"
 #include "IsFacing"
 #include "Precache"

@@ -23,44 +23,93 @@
 **/
 
 #include "v2"
-#include "v2/time"
-#include "v2/json/v2"
+#include "../String/bool"
+#include "../Entity/Entity"
 
 void PluginInit()
 {
     g_Module.ScriptInfo.SetAuthor( "Mikk155" );
     g_Module.ScriptInfo.SetContactInfo( "https://github.com/Mikk155/Sven-Co-op" );
+
+    Logger::Config.SetGlobalName( g_Module.GetModuleName() ).SetCallback(
+        function( string&in message, const Logger::Level&in level ) {
+            g_EngineFuncs.ServerPrint( message );
+            return true;
+        }
+    );
+
+    weakref<Logger> logger_Ref = Logger::Global();
+    @logger = logger_Ref.get();
+    Logger::SetStateAll( true, true );
+
     g_Scheduler.SetTimeout( "StupidSpam", 0.01f );
 }
 
+Logger@ logger;
+
 void StupidSpam()
 {
-    // Configure
-    Logger::Config
-        .SetCallback(
-            function( string&in message, const Logger::Level&in level ) {
-                Logger::time::format( message, message );
-                g_Game.AlertMessage( at_console, message );
-                return true;
-            }
-        )
-        .SetGlobalName( g_Module.GetModuleName() );
+    auto ent = g_EntityFuncs.Create( "monster_snark", g_vecZero, g_vecZero, false, null );
 
-    weakref<Logger> logger_Ref = Logger::Global();
-    Logger@ logger = logger_Ref.get();
-//    Logger::SetStateAll( true, true );
+    Entity@ e1 = ent;
+    logger.info( "Entity@ e1 = {}", ( e1.toEntity !is null ? string(e1.toEntvars.classname) : "null" ) );
 
-    Logger::json::v2::configure( """{
-"global": {
-    "info": true
+    e1 = ent;
+    logger.info( "e1 = {}", ( e1.toEntity !is null ? string(e1.toEntvars.classname) : "null" ) );
+
+    @e1 = ent;
+    logger.info( "@e1 = {}", ( e1.toEntity !is null ? string(e1.toEntvars.classname) : "null" ) );
+
+    Entity e2 = ent;
+    logger.info( "Entity e2 = {}", ( e2.toEntity !is null ? string(e2.toEntvars.classname) : "null" ) );
+
+    e2 = ent;
+    logger.info( "e2 = {}", ( e2.toEntity !is null ? string(e2.toEntvars.classname) : "null" ) );
+
+    logger.info( "@e2 = {} | crash, expected." );
+
+    e2 = e1;
+    logger.info( "e2 = e1 ({})", ( e2.toEntity !is null ? string(e2.toEntvars.classname) : "null" ) );
+
+    e1 = e2;
+    logger.info( "e1 = e2 ({})", ( e1.toEntity !is null ? string(e1.toEntvars.classname) : "null" ) );
+
+    Entity@ e3 = e1;
+    logger.info( "Entity@ e3 = e1 ({})", ( e3.toEntity !is null ? string(e3.toEntvars.classname) : "null" ) );
+
+    @e3 = null;
+    logger.info( "@e3 = null ({})", ( e3 !is null ? string(e3.toEntvars.classname) : "null" ) );
+
+    e2 = null;
+    logger.info( "e2 = null ({})", ( e3 !is null ? string(e3.toEntvars.classname) : "null" ) );
+
+    Entity@ e4 = null;
+    logger.info( "Entity@ e4 = null ({})", { e4 is null } );
+
+    Entity@ a = ent;
+    Entity@ b = null;
+    logger.info( "( Entity(ent) !is Entity(null) ) {}", String::from_bool( a !is b ) );
+    logger.info( "( Entity(ent) is Entity(null) ) {}", String::from_bool( a is b ) );
+    logger.info( "( Entity(ent) !is null ) {}", String::from_bool( a !is null ) );
+    logger.info( "( Entity(ent) is null ) {}", String::from_bool( a is null ) );
+    logger.info( "( Entity(ent) !is Entity(ent) ) {}", String::from_bool( a !is Entity(ent) ) );
+    logger.info( "( Entity(ent) is Entity(ent) ) {}", String::from_bool( a is Entity(ent) ) );
+    logger.info( "( Entity(ent) == Entity(ent) ) {}", String::from_bool( a == Entity(ent) ) );
+    logger.info( "( Entity(ent) != Entity(ent) ) {}", String::from_bool( a != Entity(ent) ) );
+
+    EHandle handle = a;
+    CBaseEntity@ entity = a;
+    CBaseAnimating@ animating = a;
+    g_Scheduler.SetTimeout( "ScheduledTask", 0.1f, a );
 }
-}""" );
 
-    if( logger !is null )
+void ScheduledTask( Entity&in entity )
+{
+    logger.info( "Scheduled Entity = {}", ( entity.toEntity !is null ? string(entity.toEntvars.classname) : "null" ) );
+
+    if( entity.toEntity !is null )
     {
-        logger.info( "single message" );
-        logger.info( "message with *args: {} {}!", { "Hello", "world" } );
-        logger.info( "message with *kwargs: {h} {w}!", null, { { "h", "Hello" }, { "w", "world" } } );
-        logger.info( "message with *args & *kwargs: {} {w}{}", { "Hello", "!" }, { { "w", "world" } } );
+        entity.Remove();
+        g_Scheduler.SetTimeout( "ScheduledTask", 0.1f, entity );
     }
 }
