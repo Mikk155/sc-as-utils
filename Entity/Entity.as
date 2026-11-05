@@ -137,10 +137,9 @@ class Entity
      */
     Entity@ SetEntity( CBaseEntity@ handle )
     {
-        if( handle !is null )
-        {
-            this.SetEntity( EHandle( handle ) );
-        }
+        this.Clear();
+        this.m_EHandle = EHandle( handle );
+        @this.m_CBaseEntity = handle;
         return this;
     }
 
@@ -152,7 +151,6 @@ class Entity
     Entity@ SetEntity( Entity@ handle )
     {
         this.Clear();
-
         if( handle !is null )
         {
             this.SetEntity( handle.toHandle );
@@ -183,9 +181,7 @@ class Entity
 
     Entity@ opAssign( Entity&in handle )
     {
-        EHandle copy = handle.m_EHandle;
-        this.Clear();
-        this.m_EHandle = copy;
+        this.SetEntity( handle.m_EHandle );
         return this;
     }
 
@@ -201,7 +197,7 @@ class Entity
      */
     Entity( Entity&in handle )
     {
-        this.SetEntity( handle );
+        this.m_EHandle = handle.m_EHandle;
     }
 
     /**
@@ -210,7 +206,7 @@ class Entity
      */
     Entity( CBaseEntity@ handle )
     {
-        this.SetEntity( handle );
+        this.m_EHandle = EHandle( handle );
     }
 
     /**
@@ -219,9 +215,8 @@ class Entity
      */
     Entity( edict_t@ handle )
     {
-        this.SetEntity( g_EntityFuncs.Instance( handle ) );
+        this.m_EHandle = EHandle( g_EntityFuncs.Instance( handle ) );
     }
-
 
     /**
      * @brief Construct a wrapper from an entity index.
@@ -229,7 +224,7 @@ class Entity
      */
     Entity( int handle )
     {
-        this.SetEntity( g_EntityFuncs.Instance( handle ) );
+        this.m_EHandle = EHandle( g_EntityFuncs.Instance( handle ) );
     }
 
     /**
@@ -238,7 +233,7 @@ class Entity
      */
     Entity( EHandle handle )
     {
-        this.SetEntity( handle );
+        this.m_EHandle = handle;
     }
 
     private bool m_HackEngineCopyMethod;
