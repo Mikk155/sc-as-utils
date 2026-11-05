@@ -1,3 +1,6 @@
+# 05/11/2026
+- Added a case-sensitive option at String::from_bool
+
 # 02/11/2026
 - Add Server::IsFacing and Entity::IsFacing due to CBasePlayer::IsFacing not working propertly.
 - Add Server::FreeEdicts to know when to not spawn entities.

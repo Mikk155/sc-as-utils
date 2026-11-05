@@ -27,16 +27,22 @@ namespace String
     /**
      * Parses common boolean text representations.
      *
-     * @param input Text interpreted as true when its numeric value is nonzero or
-     *              its case-insensitive value is "true"; otherwise false.
+     * @param input Text interpreted as true when its numeric value is nonzero
+     * or its value is "true" otherwise false.
+     * @param caseSensitive Whatever the input == "true" is case sensitive or not.
      */
-    bool to_bool( const string&in input )
+    bool to_bool( const string&in input, bool caseSensitive = false )
     {
         if( atoi( input ) != 0 )
             return true;
 
         string stringCheck = input;
-        stringCheck.ToLowercase();
+
+        if( !caseSensitive )
+        {
+            stringCheck.ToLowercase();
+        }
+
         return ( stringCheck == "true" );
     }
 
